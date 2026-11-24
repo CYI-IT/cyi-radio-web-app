@@ -73,8 +73,8 @@ npm run probe:socket -- https://phase0.cyiradio.org --mode auto --clients 5 --se
 
 | Capability | Acceptance evidence | Actual Stellar Plus account |
 |---|---|---|
-| Node.js 22 and dependencies | cPanel exposes Node.js 22. Runtime health output and installed production packages match the deploy. | Pending |
-| Git and Passenger deployment | Manual Git deploy succeeds. Express serves React assets and REST endpoints. Restart changes the process ID. Private files return 404. | Pending |
+| Node.js 22 and dependencies | cPanel exposes Node.js 22. Runtime health output and installed production packages match the deploy. | The first deploy reported Node.js 22.23.5 and npm 10.9.9. Dependency installation and runtime checks are pending. |
+| Git and Passenger deployment | Manual Git deploy succeeds. Express serves React assets and REST endpoints. Restart changes the process ID. Private files return 404. | The first deploy stopped at `npm ci` with `EUSAGE` before copying files. The deploy script now supplies and checks the build directory as npm’s local prefix. The change passed a local test with a redirected npm wrapper. Account retest pending. |
 | PostgreSQL | Record exact version, connection method, login privileges and Namecheap’s upgrade answer. Readiness returns HTTP 200. | Pending |
 | Drizzle | Generated SQL applies on the actual version. Journal hash matches. Transactional CRUD succeeds using the probe login. | Pending |
 | WebSocket | Document forced transport, concurrent delivery, persistence, reconnect and post-restart delivery. | Pending |
