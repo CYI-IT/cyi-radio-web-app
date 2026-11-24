@@ -1,10 +1,10 @@
-# Proposed CYI Radio architecture
+# CYI Radio architecture
 
 The production application will run as one Express process entry point on Namecheap Stellar Plus under cPanel’s Node.js manager. Express will serve the compiled React frontend and same-origin `/api/v1` endpoints at `live.cyiradio.org`. Administrators use individual accounts with server-side RBAC and audit logging. PostgreSQL 10.23 is the compatibility target for application records and chat history. Drizzle Kit generates reviewed SQL migrations that an operator tests on that version and applies explicitly.
 
 Listeners play `https://radio.cyiradio.com/live` directly from the existing Icecast server. The backend calculates current and upcoming programmes from the effective schedule in `Africa/Accra`. Icecast status is tracked independently from the scheduled programme. The chat transport depends on the Stellar Plus account tests in the [Phase 0 report](phase-0.md).
 
-## Proposed database ERD
+## Database ERD
 
 ```mermaid
 erDiagram
@@ -18,18 +18,20 @@ erDiagram
     schedule_series ||--o{ schedule_exceptions : has
     presenters o|--o{ schedule_exceptions : replaces_presenter
     chat_sessions ||--o{ chat_messages : sends
+    admins o|--o{ chat_messages : removes
     chat_sessions ||--o{ muted_users : subject_to
     admins ||--o{ muted_users : applies
     station_settings {
         text key PK
         jsonb value
+        timestamptz created_at
         timestamptz updated_at
     }
 ```
 
-`schedule_series` represents a dated one-time slot or a bounded or open-ended recurrence using local start times and selected weekdays. `schedule_exceptions` uses the series and original occurrence date as its unique key. When publishing, evaluate overlaps using effective start and end timestamps, including intervals that cross midnight. Record authorized overrides in `admin_activity_logs`.
+`schedule_series` represents a dated one-time slot or a bounded or open-ended weekly recurrence. It stores station-local dates and start times, a duration in minutes and a seven-bit weekday mask for weekly schedules. The low bit is Monday. `schedule_exceptions` uses the series and original occurrence date as its primary key. The scheduler will validate occurrence membership and evaluate overlaps using effective start and end timestamps, including intervals that cross midnight. It will record authorized overrides in `admin_activity_logs`.
 
-`chat_sessions` identifies anonymous participants independently of display name. `chat_messages` references the session, and `muted_users` records each restriction and its expiration. Programme, presenter, and admin records can be archived or deactivated where historical references are needed. Add indexes for schedule lookups, message history and moderation, and model authentication session and recovery storage during the foundation and administration phases.
+`chat_sessions` identifies anonymous participants independently of display name. `chat_messages` references the session, and `muted_users` records each restriction and its expiration. Programme, presenter and admin records support archival or deactivation to preserve historical references. The initial migration indexes schedule lookups, chat history and moderation. Phase 6 will define the authentication session and password recovery tables alongside the flows that use them.
 
 ## Repository layout
 
@@ -38,6 +40,7 @@ app.js                  cPanel startup entry point
 frontend/               React source
 server/                 Express and PostgreSQL code
 migrations/             Reviewed SQL and Drizzle metadata
+probes/phase-0/          Archived probe migrations and external Socket.IO test
 scripts/                Deployment and verification commands
 docs/                   Compatibility evidence and operating instructions
 .cpanel.yml             Manual cPanel Git deploy task
@@ -45,7 +48,7 @@ deploy/frontend/        Versioned frontend assets built off-host for cPanel
 dist/                   Generated Vite output
 ```
 
-Phase 1 will place the probe-only migration and related scripts outside the production migration path before introducing the first application migration. The Git checkout and Node application stay in private directories. cPanel environment variables and uploaded media are managed separately from deploy copies.
+The application migrations use a fresh database. The Phase 0 files and hosting runbook remain available for compatibility tests. The Git checkout and Node application stay in private directories. cPanel environment variables and uploaded media are managed separately from deploy copies.
 
 ## Implementation sequence
 

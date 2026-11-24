@@ -2,11 +2,11 @@
 set -euo pipefail
 
 repo=$(cd -- "$(dirname -- "$0")/.." && pwd -P)
-app_root=${CYI_PHASE0_APP_ROOT:-"$HOME/apps/cyi-radio-phase0"}
-node_bin=${CYI_PHASE0_NODE_BIN:-"$HOME/nodevenv/apps/cyi-radio-phase0/22/bin"}
+app_root=${CYI_APP_ROOT:-"$HOME/apps/cyi-radio"}
+node_bin=${CYI_NODE_BIN:-"$HOME/nodevenv/apps/cyi-radio/22/bin"}
 
 if [[ ! -d "$app_root" || ! -x "$node_bin/node" || ! -x "$node_bin/npm" ]]; then
-  echo 'Create the private Phase 0 Node.js 22 app in cPanel before deploying.' >&2
+  echo 'Create the private CYI Radio Node.js 22 app in cPanel before deploying.' >&2
   exit 1
 fi
 
@@ -20,7 +20,7 @@ if [[ ! -s "$frontend/index.html" || ! -d "$frontend/assets" ]]; then
   exit 1
 fi
 
-check_dir=$(mktemp -d "${app_root%/*}/.cyi-phase0-deps.XXXXXX")
+check_dir=$(mktemp -d "${app_root%/*}/.cyi-radio-deps.XXXXXX")
 trap 'rm -rf -- "$check_dir"' EXIT
 cp "$repo/package.json" "$repo/package-lock.json" "$check_dir/"
 

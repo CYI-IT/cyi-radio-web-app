@@ -1,12 +1,11 @@
 const { drizzle } = require('drizzle-orm/node-postgres')
 const { Pool } = require('pg')
-const { probeRecords } = require('./schema.cjs')
-
-function connectDatabase() {
-  if (!process.env.DATABASE_URL) throw new Error('Set DATABASE_URL for the Phase 0 database')
+function connectDatabase(databaseUrl = process.env.DATABASE_URL) {
+  if (!databaseUrl) throw new Error('Set DATABASE_URL for the CYI Radio database')
 
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseUrl,
+    options: '-c search_path=public',
     max: 2,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 3_000,
@@ -17,4 +16,4 @@ function connectDatabase() {
   return { db: drizzle(pool), pool }
 }
 
-module.exports = { connectDatabase, probeRecords }
+module.exports = { connectDatabase }

@@ -2,6 +2,8 @@
 
 **Status as of 24 November 2026** — The proof of concept is running at `https://phase0.cyiradio.com` on the Stellar Plus account. Deployment, database, restart and basic transport checks passed. cPanel reported no limits reached during the five-client test window. A longer resource test is open.
 
+Use commit `c98acf0` for the complete Phase 0 application and the hosting instructions below. The current branch keeps the external Socket.IO utility under `probes/phase-0/` and uses a dedicated database for the application migrations.
+
 The account runs PostgreSQL 10.23, the final upstream release of PostgreSQL 10. The project owner chose to proceed with 10.23 on Stellar Plus. Use SQL compatible with PostgreSQL 10 for the application schema and test each generated migration against that version before deployment. [PostgreSQL 10.23 release announcement](https://www.postgresql.org/about/news/postgresql-151-146-139-1213-1118-and-1023-released-2543/)
 
 ## Local verification results
@@ -75,4 +77,4 @@ npm run probe:socket -- https://phase0.cyiradio.com --mode auto --clients 5 --se
 | Polling and automatic mode | Record active transport, delivery, persistence and reconnect. Capture browser behavior when upgrade fails. | Forced polling passed with two simultaneous external clients held for five seconds. After the cPanel restart, all five automatic-mode clients selected WebSocket and stayed connected for 120 seconds. All three broadcasts reached all five clients, including after a client reconnected. |
 | Shared-hosting resource limits | Record tested client count, duration, resource usage, faults and interruptions. | The five-client, 120-second automatic-mode test had zero unexpected disconnects. The account owner reported that cPanel Resource Usage displayed no limits reached for the test window. A longer test is pending. |
 
-Finalize this report before Phase 1 approval. If both Socket.IO transports are unreliable on the account, evaluate a managed real-time messaging service using the same delivery and reconnect criteria, with PostgreSQL retaining chat history.
+Complete the longer resource test before relying on Socket.IO for Phase 5. If both transports are unreliable on the account, evaluate a managed real-time messaging service using the same delivery and reconnect criteria, with PostgreSQL retaining chat history.

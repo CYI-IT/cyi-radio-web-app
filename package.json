@@ -1,5 +1,5 @@
 {
-  "name": "cyi-radio-hosting-probe",
+  "name": "cyi-radio",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -8,19 +8,18 @@
   "scripts": {
     "build": "vite build",
     "build:deploy": "vite build --outDir deploy/frontend --emptyOutDir",
-    "start": "node app.js",
+    "start": "node --env-file-if-exists=.env app.js",
     "db:generate": "drizzle-kit generate --config drizzle.config.cjs",
     "db:inspect": "node scripts/db.cjs inspect",
-    "db:migrate": "node scripts/db.cjs migrate",
-    "db:status": "node scripts/db.cjs status",
-    "db:verify": "node scripts/db.cjs verify",
-    "probe:socket": "node scripts/socket-probe.cjs"
+    "db:migrate": "node --env-file-if-exists=.env scripts/db.cjs migrate",
+    "db:status": "node --env-file-if-exists=.env scripts/db.cjs status",
+    "db:verify": "node --env-file-if-exists=.env scripts/db.cjs verify",
+    "probe:socket": "node probes/phase-0/socket-probe.cjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
-    "pg": "^8.16.3",
-    "socket.io": "^4.8.3"
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.9",
