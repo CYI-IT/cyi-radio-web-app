@@ -1,0 +1,31 @@
+{
+  "name": "cyi-radio-hosting-probe",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "start": "node app.js",
+    "db:generate": "drizzle-kit generate --config drizzle.config.cjs",
+    "db:inspect": "node scripts/db.cjs inspect",
+    "db:migrate": "node scripts/db.cjs migrate",
+    "db:status": "node scripts/db.cjs status",
+    "db:verify": "node scripts/db.cjs verify",
+    "probe:socket": "node scripts/socket-probe.cjs"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
+    "pg": "^8.16.3",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.9",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "socket.io-client": "^4.8.3",
+    "vite": "^7.3.1"
+  }
+}
