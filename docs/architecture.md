@@ -1,6 +1,6 @@
 # Proposed CYI Radio architecture
 
-The production application will run as one Express process entry point on Namecheap Stellar Plus under cPanel’s Node.js manager. Express will serve the compiled React frontend and same-origin `/api/v1` endpoints at `live.cyiradio.org`. Administrators use individual accounts with server-side RBAC and audit logging. PostgreSQL holds application records and chat history. Drizzle Kit generates reviewed SQL migrations that an operator applies explicitly.
+The production application will run as one Express process entry point on Namecheap Stellar Plus under cPanel’s Node.js manager. Express will serve the compiled React frontend and same-origin `/api/v1` endpoints at `live.cyiradio.org`. Administrators use individual accounts with server-side RBAC and audit logging. PostgreSQL 10.23 is the compatibility target for application records and chat history. Drizzle Kit generates reviewed SQL migrations that an operator tests on that version and applies explicitly.
 
 Listeners play `https://radio.cyiradio.com/live` directly from the existing Icecast server. The backend calculates current and upcoming programmes from the effective schedule in `Africa/Accra`. Icecast status is tracked independently from the scheduled programme. The chat transport depends on the Stellar Plus account tests in the [Phase 0 report](phase-0.md).
 
