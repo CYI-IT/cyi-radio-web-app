@@ -41,6 +41,7 @@ migrations/             Reviewed SQL and Drizzle metadata
 scripts/                Deployment and verification commands
 docs/                   Compatibility evidence and operating instructions
 .cpanel.yml             Manual cPanel Git deploy task
+deploy/frontend/        Versioned frontend assets built off-host for cPanel
 dist/                   Generated Vite output
 ```
 

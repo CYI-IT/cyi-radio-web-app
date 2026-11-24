@@ -25,3 +25,7 @@ npm run probe:socket -- http://localhost:3000 --mode auto
 ```
 
 `GET /api/v1/health` reports the running Node version and a process identifier. `GET /api/v1/ready` returns HTTP 200 after a Drizzle query succeeds against the probe table, or HTTP 503 while the database is unavailable or the migration is pending.
+
+## Prepare a cPanel release
+
+After changing the frontend or its dependencies, run `npm ci` and `npm run build:deploy` on your development machine. Commit the updated `deploy/frontend/` files with the source changes. The cPanel Git task uses those assets and checks the locked production dependencies.
