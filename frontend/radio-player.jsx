@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { BroadcastIcon } from '@phosphor-icons/react/Broadcast'
 import { PlayIcon } from '@phosphor-icons/react/Play'
 import { SpeakerHighIcon } from '@phosphor-icons/react/SpeakerHigh'
 import { SpeakerSlashIcon } from '@phosphor-icons/react/SpeakerSlash'
@@ -133,7 +132,7 @@ function SignalBars({ playing }) {
   return <span className="signal-bars" data-playing={playing} aria-hidden="true"><i /><i /><i /><i /></span>
 }
 
-export function PlayerDock({ radio, current }) {
+export function PlayerDock({ radio, current, logoUrl }) {
   const silent = radio.muted || radio.volume === 0
   const VolumeIcon = silent ? SpeakerSlashIcon : SpeakerHighIcon
   const isPlaying = radio.playback === 'playing'
@@ -142,7 +141,7 @@ export function PlayerDock({ radio, current }) {
   return (
     <section className="player-dock" aria-label="Live radio player">
       <div className="dock-station">
-        <span className="dock-art"><BroadcastIcon size={23} weight="bold" aria-hidden="true" /></span>
+        <img className="dock-art" src={logoUrl} alt="" width="710" height="327" />
         <div className="dock-station-text">
           <p className="dock-title">{current?.programme?.title ?? 'CYI Radio'}</p>
           <p className="dock-subtitle">{current ? 'CYI Radio · Scheduled now' : 'Live radio'}</p>

@@ -1,11 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { BroadcastIcon } from '@phosphor-icons/react/Broadcast'
 import { CalendarBlankIcon } from '@phosphor-icons/react/CalendarBlank'
 
 // The API timestamps are already station-local. UTC keeps Intl from shifting their wall times.
-const scheduleDate = new Intl.DateTimeFormat('en-GB', {
-  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
-})
 const shortDate = new Intl.DateTimeFormat('en-GB', {
   weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC',
 })
@@ -18,6 +15,14 @@ const preciseTime = new Intl.DateTimeFormat('en-GB', {
 
 function localDate(timestamp) {
   return timestamp.split('T')[0]
+}
+
+function stationDate(timezone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts()
+  const { year, month, day } = Object.fromEntries(parts.map(({ type, value }) => [type, value]))
+  return `${year}-${month}-${day}`
 }
 
 function formatTime(timestamp) {
@@ -58,52 +63,31 @@ function ScheduledNow({ current }) {
   )
 }
 
-function UpcomingProgrammes({ upcoming }) {
-  const [selected, setSelected] = useState('')
-  const dates = new Map()
-  for (const entry of upcoming) {
-    const day = localDate(entry.startsAt)
-    if (!dates.has(day)) dates.set(day, [])
-    dates.get(day).push(entry)
-  }
-  const selectedDate = dates.has(selected) ? selected : ''
-  const shownDates = selectedDate ? [[selectedDate, dates.get(selectedDate)]] : dates
+function TodaysProgrammes({ programmes, current, upcomingOnly }) {
+  const remaining = programmes.filter(entry =>
+    entry.seriesId !== current?.seriesId || entry.occurrenceDate !== current?.occurrenceDate,
+  )
+  const heading = upcomingOnly ? 'Coming up today' : current ? 'Also today' : 'Today’s programmes'
+  const emptyMessage = upcomingOnly ? 'No upcoming programmes are scheduled for today.'
+    : current ? 'No other programmes are scheduled today.' : 'No programmes are scheduled today.'
 
   return (
-    <section className="upcoming" aria-labelledby="upcoming-heading">
-      <div className="upcoming-header">
-        <h3 id="upcoming-heading">Coming up</h3>
-        {dates.size > 1 ? (
-          <label className="date-filter">
-            <span className="visually-hidden">Filter upcoming programmes by date</span>
-            <select value={selectedDate} onChange={event => setSelected(event.target.value)}>
-              <option value="">All dates</option>
-              {Array.from(dates.keys(), day => (
-                <option key={day} value={day}>{scheduleDate.format(new Date(`${day}T00:00:00Z`))}</option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-      </div>
-      {dates.size ? (
-        Array.from(shownDates, ([day, entries]) => (
-          <section className="schedule-day" key={day} aria-labelledby={`schedule-${day}`}>
-            <h4 id={`schedule-${day}`}><time dateTime={day}>{scheduleDate.format(new Date(`${day}T00:00:00Z`))}</time></h4>
-            <ol className="schedule-list">
-              {entries.map(entry => (
-                <li className="schedule-entry" key={`${entry.seriesId}/${entry.occurrenceDate}`}>
-                  <div className="entry-programme">
-                    <p className="entry-title">{entry.programme.title}</p>
-                    {entry.presenter ? <p className="programme-presenter">with {entry.presenter.name}</p> : null}
-                  </div>
-                  <TimeRange startsAt={entry.startsAt} endsAt={entry.endsAt} />
-                </li>
-              ))}
-            </ol>
-          </section>
-        ))
+    <section className="today-programmes" aria-labelledby="today-programmes-heading">
+      <h3 id="today-programmes-heading">{heading}</h3>
+      {remaining.length ? (
+        <ol className="schedule-list">
+          {remaining.map(entry => (
+            <li className="schedule-entry" key={`${entry.seriesId}/${entry.occurrenceDate}`}>
+              <div className="entry-programme">
+                <p className="entry-title">{entry.programme.title}</p>
+                {entry.presenter ? <p className="programme-presenter">with {entry.presenter.name}</p> : null}
+              </div>
+              <TimeRange startsAt={entry.startsAt} endsAt={entry.endsAt} />
+            </li>
+          ))}
+        </ol>
       ) : (
-        <p className="schedule-message">No upcoming programmes are scheduled.</p>
+        <p className="schedule-message">{emptyMessage}</p>
       )}
     </section>
   )
@@ -111,7 +95,13 @@ function UpcomingProgrammes({ upcoming }) {
 
 export function ListenerSchedule({ feed }) {
   const { state, data, refresh } = feed
-  const ready = state === 'ready' && Array.isArray(data?.upcoming)
+  const fullDay = Array.isArray(data?.programmes)
+  // During a cPanel rollout the new page can load before the API restarts.
+  const upcomingOnly = !fullDay && Array.isArray(data?.upcoming) && Boolean(data.timezone)
+  const ready = state === 'ready' && (fullDay || upcomingOnly)
+  const today = ready && upcomingOnly ? stationDate(data.timezone) : null
+  const programmes = upcomingOnly ? data.upcoming.filter(entry => localDate(entry.startsAt) === today)
+    : data?.programmes
   const timezone = data?.timezone === 'Africa/Accra' ? 'Accra (GMT)' : data?.timezone?.replaceAll('_', ' ')
 
   return (
@@ -125,7 +115,7 @@ export function ListenerSchedule({ feed }) {
       {ready ? (
         <div className="schedule-panel">
           <ScheduledNow current={data.current} />
-          <UpcomingProgrammes upcoming={data.upcoming} />
+          <TodaysProgrammes programmes={programmes} current={data.current} upcomingOnly={upcomingOnly} />
         </div>
       ) : state === 'loading' ? (
         <div className="schedule-panel schedule-feedback" role="status">

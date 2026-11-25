@@ -11,24 +11,25 @@
   font: 1rem/1.5 Outfit, system-ui, sans-serif;
   color: var(--text);
   background: var(--background);
-  --text: #f6f7f0;
-  --background: #141613;
-  --surface: #1c1f1a;
-  --surface-raised: #242821;
-  --sidebar: #10120f;
-  --muted: #b1b6a9;
-  --line: #343a30;
-  --accent: #d8fa68;
-  --accent-hover: #e6ff93;
-  --accent-wash: #29331f;
-  --active-text: var(--accent);
-  --focus: var(--accent);
-  --input-background: #151813;
-  --input-border: #62695c;
-  --dock-background: #181b16;
-  --hover-border: #535d4d;
-  --ink: #171e0d;
-  --error: #ffb6a4;
+  --text: #f9f3f3;
+  --background: #181415;
+  --surface: #211a1c;
+  --surface-raised: #2b2224;
+  --sidebar: #150f11;
+  --muted: #c1b1b3;
+  --line: #403436;
+  --accent: #AE1E22;
+  --accent-hover: #bf2b30;
+  --on-accent: #fff7f7;
+  --accent-wash: #402024;
+  --active-text: #ffa0a1;
+  --focus: #ffa0a1;
+  --input-background: #1b1517;
+  --input-border: #79686a;
+  --dock-background: #1d1518;
+  --hover-border: #685356;
+  --logo-background: #fff8f8;
+  --error: #ffb1a9;
   --panel-radius: 1.125rem;
   --control-radius: .625rem;
   --dock-size: calc(5rem + env(safe-area-inset-bottom));
@@ -70,7 +71,7 @@ button:disabled {
   inset: .75rem auto auto .75rem;
   padding: .5rem .875rem;
   border-radius: var(--control-radius);
-  color: var(--ink);
+  color: var(--on-accent);
   background: var(--accent);
 }
 
@@ -96,36 +97,25 @@ button:disabled {
 }
 
 .station-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: .625rem;
+  display: block;
+  width: 9rem;
   align-self: start;
   margin-inline-start: .375rem;
-  color: inherit;
-  font-size: 1.35rem;
-  font-weight: 740;
-  letter-spacing: -.045em;
-  text-decoration: none;
-  white-space: nowrap;
+  border-radius: var(--control-radius);
+  background: var(--logo-background);
 }
 
-.station-brand-radio {
-  margin-inline-start: .125rem;
-  font-weight: 500;
+.station-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.station-mark, .dock-art, .programme-icon, .chat-art {
+.programme-icon, .chat-art {
   display: grid;
   flex: none;
   place-items: center;
   border-radius: var(--control-radius);
-}
-
-.station-mark {
-  width: 2.375rem;
-  height: 2.375rem;
-  color: var(--ink);
-  background: var(--accent);
 }
 
 .station-nav {
@@ -191,7 +181,7 @@ button:disabled {
 
 .button-accent {
   background: var(--accent);
-  color: var(--ink);
+  color: var(--on-accent);
 }
 
 .button-accent:hover:not(:disabled) { background: var(--accent-hover); }
@@ -223,7 +213,7 @@ button:disabled {
   color: inherit;
 }
 
-.share-dialog::backdrop { background: rgb(9 11 8 / 75%); }
+.share-dialog::backdrop { background: rgb(13 8 10 / 75%); }
 
 .dialog-close {
   position: absolute;
@@ -260,28 +250,30 @@ button:disabled {
   min-height: clamp(23rem, 34vw, 29rem);
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid #39462c;
+  border: 1px solid #633337;
   border-radius: var(--panel-radius);
-  background: #192213;
-  color: #f6f7f0;
-  --focus: var(--accent);
+  background: rgb(var(--hero-base));
+  color: #f9f3f3;
+  --hero-base: 36 13 15;
+  --hero-accent: #ff989b;
+  --focus: var(--hero-accent);
 }
 
-.studio-photo {
+.hero-pattern {
   position: absolute;
   z-index: -2;
   inset: 0 0 0 auto;
   width: 76%;
   height: 100%;
   object-fit: cover;
-  object-position: 60% 39%;
+  object-position: center;
 }
 
 .listen-hero::after {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: linear-gradient(90deg, #192213 12%, rgb(25 34 19 / 96%) 24%, rgb(25 34 19 / 64%) 44%, transparent 71%);
+  background: linear-gradient(90deg, rgb(var(--hero-base)) 12%, rgb(var(--hero-base) / 96%) 24%, rgb(var(--hero-base) / 64%) 44%, transparent 71%);
   content: '';
   pointer-events: none;
 }
@@ -297,10 +289,10 @@ button:disabled {
   align-items: center;
   gap: .5rem;
   padding: .3rem .625rem;
-  border: 1px solid rgb(204 232 180 / 23%);
+  border: 1px solid rgb(255 176 179 / 30%);
   border-radius: .375rem;
-  background: #202a18;
-  color: #e1ebd5;
+  background: #39191d;
+  color: #f1d9da;
   font-size: .8125rem;
   font-weight: 650;
 }
@@ -313,7 +305,7 @@ button:disabled {
   content: '';
 }
 
-.stream-status[data-status='online'] { color: var(--accent); }
+.stream-status[data-status='online'] { color: var(--hero-accent); }
 
 h1 {
   margin-block-start: .75rem;
@@ -323,12 +315,12 @@ h1 {
   letter-spacing: -.04em;
 }
 
-h1 span { color: var(--accent); }
+h1 span { color: var(--hero-accent); }
 
 .hero-description {
   max-width: 25ch;
   margin-block: 1rem 1.375rem;
-  color: #e1ebd5;
+  color: #f1d9da;
   font-size: clamp(.975rem, 1.5vw, 1.125rem);
 }
 
@@ -339,7 +331,7 @@ h1 span { color: var(--accent); }
 
 .listener-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
   align-items: start;
   gap: clamp(1rem, 2vw, 1.625rem);
   margin-block-start: 1.875rem;
@@ -444,38 +436,9 @@ h3 {
 
 .schedule-time small { font-size: .75rem; }
 
-.upcoming, .schedule-feedback { padding: 1rem; }
+.today-programmes, .schedule-feedback { padding: 1rem; }
 
-.upcoming-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: .625rem;
-}
-
-.upcoming > .schedule-message, .schedule-feedback > button { margin-block-start: .5rem; }
-
-.date-filter { max-width: 100%; }
-
-.date-filter select {
-  max-width: 100%;
-  min-height: 2.75rem;
-  padding-inline: .625rem;
-  border: 1px solid var(--line);
-  border-radius: var(--control-radius);
-  background: var(--surface-raised);
-  color: inherit;
-  font-size: .875rem;
-}
-
-.schedule-day { margin-block-start: .875rem; }
-
-.schedule-day h4 {
-  color: var(--muted);
-  font-size: .875rem;
-  font-weight: 550;
-}
+.today-programmes > .schedule-message, .schedule-feedback > button { margin-block-start: .5rem; }
 
 .schedule-list, .chat-messages ol {
   margin: 0;
@@ -629,10 +592,13 @@ h3 {
 }
 
 .dock-art {
-  width: 2.75rem;
+  display: block;
+  flex: none;
+  width: 3.55rem;
   height: 2.75rem;
-  background: var(--accent-wash);
-  color: var(--active-text);
+  border-radius: var(--control-radius);
+  background: var(--logo-background);
+  object-fit: contain;
 }
 
 .dock-station-text { min-width: 0; }
@@ -667,7 +633,7 @@ h3 {
   padding: 0;
   border-radius: 50%;
   background: var(--accent);
-  color: var(--ink);
+  color: var(--on-accent);
 }
 
 .dock-play:hover:not(:disabled) { background: var(--accent-hover); }
@@ -698,7 +664,7 @@ h3 {
   gap: 2px;
   width: 1.625rem;
   height: 1.5rem;
-  color: #889279;
+  color: var(--muted);
 }
 
 .signal-bars i {
@@ -744,8 +710,7 @@ h3 {
   }
 
   .station-brand {
-    width: fit-content;
-    min-height: 2.75rem;
+    width: 8.25rem;
     margin: 0;
   }
 
@@ -761,7 +726,7 @@ h3 {
 
   .share-button {
     position: absolute;
-    inset: calc(.75rem + env(safe-area-inset-top)) var(--right-gutter) auto auto;
+    inset: calc(1.25rem + env(safe-area-inset-top)) var(--right-gutter) auto auto;
   }
 
   .listen-hero { min-height: 24rem; }
@@ -788,15 +753,15 @@ h3 {
     min-height: clamp(23rem, 82vw, 27rem);
   }
 
-  .studio-photo {
+  .hero-pattern {
     width: 100%;
     height: 100%;
-    object-position: 65% 35%;
+    object-position: 76% center;
   }
 
   .listen-hero::after {
-    background: linear-gradient(0deg, #192213 2%, rgb(25 34 19 / 91%) 32%, rgb(25 34 19 / 28%) 72%, transparent),
-      linear-gradient(90deg, rgb(25 34 19 / 68%), transparent 82%);
+    background: linear-gradient(0deg, rgb(var(--hero-base)) 2%, rgb(var(--hero-base) / 91%) 32%, rgb(var(--hero-base) / 28%) 72%, transparent),
+      linear-gradient(90deg, rgb(var(--hero-base) / 68%), transparent 82%);
   }
 
   .listen-content { padding: 1.25rem; }
@@ -850,21 +815,21 @@ h3 {
 @media (prefers-color-scheme: light) {
   :root {
     color-scheme: light;
-    --text: #191f16;
-    --background: #f0f3eb;
-    --surface: #fafbf6;
-    --surface-raised: #e9eee2;
-    --sidebar: #e8ede0;
-    --muted: #515c4b;
-    --line: #cdd6c5;
-    --accent-wash: #e5eed5;
-    --active-text: #345320;
-    --focus: #406125;
-    --input-background: #fcfdf9;
-    --input-border: #86927e;
-    --dock-background: #f8faf3;
-    --hover-border: #9aab90;
-    --error: #9c3429;
+    --text: #2b2022;
+    --background: #f7f0f0;
+    --surface: #fffbfb;
+    --surface-raised: #f4e7e8;
+    --sidebar: #f0e4e5;
+    --muted: #645456;
+    --line: #deced0;
+    --accent-wash: #f8dfe0;
+    --active-text: var(--accent);
+    --focus: var(--accent);
+    --input-background: #fffcfc;
+    --input-border: #a08a8d;
+    --dock-background: #fdf7f7;
+    --hover-border: #b99fa3;
+    --error: #9c292d;
   }
 }
 

@@ -1,6 +1,6 @@
 const { and, asc, eq, inArray, isNull } = require('drizzle-orm')
 const { presenters, programmes, scheduleSeries, scheduleExceptions } = require('./schema.cjs')
-const { scheduleAt } = require('./occurrences.cjs')
+const { scheduleAt, scheduleToday } = require('./occurrences.cjs')
 
 const published = and(eq(scheduleSeries.publicationStatus, 'published'), isNull(scheduleSeries.archivedAt))
 
@@ -23,12 +23,14 @@ async function loadSeries(db, filter, activeCatalog = false) {
   return [...result.values()]
 }
 
-async function publicSchedule(db, timezone, now = new Date()) {
+async function publicSchedule(db, timezone, now = new Date(), { today = false } = {}) {
   return db.transaction(async tx => {
     const series = await loadSeries(tx, published, true)
-    const { current, upcoming } = scheduleAt(series, timezone, now)
-    const entries = current ? [current, ...upcoming] : upcoming
-    if (!entries.length) return { timezone, current: null, upcoming: [] }
+    const listKey = today ? 'programmes' : 'upcoming'
+    const schedule = (today ? scheduleToday : scheduleAt)(series, timezone, now)
+    const { current, [listKey]: list } = schedule
+    const entries = current ? [current, ...list] : list
+    if (!entries.length) return { timezone, current: null, [listKey]: [] }
 
     const programmeIds = [...new Set(entries.map(entry => entry.programmeId))]
     const presenterIds = [...new Set(entries.map(entry => entry.presenterId))]
@@ -50,7 +52,7 @@ async function publicSchedule(db, timezone, now = new Date()) {
         presenter: presentersById.get(presenterId) ?? null,
       }
     }
-    return { timezone, current: current ? hydrate(current) : null, upcoming: upcoming.map(hydrate) }
+    return { timezone, current: current ? hydrate(current) : null, [listKey]: list.map(hydrate) }
   }, { isolationLevel: 'repeatable read', accessMode: 'read only' })
 }
 

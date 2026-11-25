@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { findConflict, scheduleAt, segmentsForSeries } = require('../server/occurrences.cjs')
+const { findConflict, scheduleAt, scheduleToday, segmentsForSeries } = require('../server/occurrences.cjs')
 
 const timezone = 'Africa/Accra'
 const weekly = {
@@ -30,6 +30,23 @@ test('uses the previous local date for a programme still on after midnight', () 
   const gap = scheduleAt([weekly], timezone, new Date('2026-11-26T01:00:00Z'))
   assert.equal(gap.current, null)
   assert.equal(gap.upcoming[0].startsAt, '2026-11-26T23:30:00')
+})
+
+test('lists the full station-local day, including shows that cross midnight', () => {
+  const series = [
+    oneTime('ends-at-midnight', '2026-11-25', '23:00:00'),
+    oneTime('overnight', '2026-11-25', '23:30:00', 90),
+    ...Array.from({ length: 12 }, (_, hour) => oneTime(`show-${hour}`, '2026-11-26',
+      `${String(hour + 1).padStart(2, '0')}:00:00`)),
+    oneTime('tomorrow', '2026-11-27', '00:00:00'),
+  ]
+  const afterMidnight = scheduleToday(series, 'Africa/Lagos', new Date('2026-11-25T23:15:00Z'))
+  assert.equal(afterMidnight.current.seriesId, 'overnight')
+  assert.deepEqual(afterMidnight.programmes.map(entry => entry.seriesId),
+    ['overnight', ...Array.from({ length: 12 }, (_, hour) => `show-${hour}`)])
+  const later = scheduleToday(series, 'Africa/Lagos', new Date('2026-11-26T17:00:00Z'))
+  assert.equal(later.current, null)
+  assert.deepEqual(later.programmes, afterMidnight.programmes)
 })
 
 test('uses effective dates, presenters, and durations for isolated occurrence changes', () => {

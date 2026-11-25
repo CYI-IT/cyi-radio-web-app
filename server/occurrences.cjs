@@ -168,4 +168,30 @@ function scheduleAt(series, timezone, now = new Date(), limit = 10) {
   }
 }
 
-module.exports = { includesDate, timeSeconds, singleOccurrence, segmentsForSeries, findConflict, scheduleAt }
+function scheduleToday(series, timezone, now = new Date()) {
+  const clock = stationClock(now, timezone)
+  const dayStart = Math.floor(clock / secondsPerDay) * secondsPerDay
+  const dayEnd = dayStart + secondsPerDay
+  const entries = []
+  let current = null
+
+  for (const slot of series.flatMap(segmentsForSeries)) {
+    // Start with the first occurrence whose end is after local midnight.
+    const weeks = Math.max(0, Math.floor((dayStart - slot.duration - slot.first) / secondsPerWeek) + 1)
+    for (let start = slot.first + weeks * secondsPerWeek; start < dayEnd && start <= slot.last; start += secondsPerWeek) {
+      const entry = { slot, start }
+      entries.push(entry)
+      if (start <= clock && clock < start + slot.duration &&
+        (!current || start > current.start || (start === current.start && compareEntries(entry, current) < 0))) {
+        current = entry
+      }
+    }
+  }
+
+  return {
+    current: current ? occurrence(current.slot, current.start) : null,
+    programmes: entries.sort(compareEntries).map(({ slot, start }) => occurrence(slot, start)),
+  }
+}
+
+module.exports = { includesDate, timeSeconds, singleOccurrence, segmentsForSeries, findConflict, scheduleAt, scheduleToday }

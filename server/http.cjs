@@ -36,10 +36,11 @@ function createApp({ config, database, frontend, chatRealtime = false, onChatCha
   api.get('/stream', async (_request, response) => {
     response.json(await getStreamStatus())
   })
-  api.get('/schedule', async (_request, response) => {
+  api.get('/schedule', async (request, response) => {
     if (database) {
       try {
-        return response.json(await publicSchedule(database.db, config.stationTimezone))
+        const today = request.query.day === 'today'
+        return response.json(await publicSchedule(database.db, config.stationTimezone, new Date(), { today }))
       } catch (error) {
         console.error('Schedule read failed', error.cause?.code ?? error.code ?? 'unknown')
       }
