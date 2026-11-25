@@ -3,11 +3,17 @@ const { join } = require('node:path')
 const { readConfig } = require('./server/config.cjs')
 const { connectDatabase } = require('./server/database.cjs')
 const { createApp } = require('./server/http.cjs')
+const { attachChatSocket } = require('./server/chat-socket.cjs')
 
 const config = readConfig()
 const database = config.databaseUrl ? connectDatabase(config.databaseUrl) : null
 const frontend = join(__dirname, 'dist')
-const server = createServer(createApp({ config, database, frontend }))
+const chatRealtime = Boolean(database) && config.chatTransport === 'socket.io'
+const server = createServer(createApp({
+  config, database, frontend, chatRealtime,
+  onChatChange: () => chatSocket?.emit('chat:changed'),
+}))
+const chatSocket = chatRealtime ? attachChatSocket(server, config) : null
 
 server.listen(config.port)
 
@@ -18,7 +24,8 @@ function shutdown() {
   }, 10_000)
   timeout.unref()
 
-  server.close(async error => {
+  const close = chatSocket ? chatSocket.close.bind(chatSocket) : server.close.bind(server)
+  close(async error => {
     try {
       if (error) throw error
       await database?.pool.end()

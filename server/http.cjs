@@ -4,17 +4,19 @@ const express = require('express')
 const { stationSettings } = require('./schema.cjs')
 const { createStreamStatus } = require('./stream.cjs')
 const { publicSchedule } = require('./schedule-data.cjs')
+const { chatRouter } = require('./chat-http.cjs')
 
-function createApp({ config, database, frontend }) {
+function createApp({ config, database, frontend, chatRealtime = false, onChatChange = () => {} }) {
   const app = express()
   const bootId = randomUUID()
   const getStreamStatus = createStreamStatus(config)
   const streamOrigin = new URL(config.icecastStreamUrl).origin
+  const connectSources = chatRealtime ? `'self' ${config.publicAppUrl.replace(/^http/, 'ws')}` : "'self'"
   app.disable('x-powered-by')
 
   app.use((_request, response, next) => {
     response.set({
-      'Content-Security-Policy': `default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; media-src 'self' ${streamOrigin}`,
+      'Content-Security-Policy': `default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; media-src 'self' ${streamOrigin}; connect-src ${connectSources}`,
       'Referrer-Policy': 'same-origin',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
@@ -44,6 +46,7 @@ function createApp({ config, database, frontend }) {
     }
     response.status(503).json({ status: 'unavailable' })
   })
+  api.use('/chat', chatRouter({ config, database, realtime: chatRealtime, notify: onChatChange }))
   api.get('/ready', async (_request, response) => {
     if (database) {
       try {

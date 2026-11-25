@@ -22,6 +22,8 @@ The home page shows the live player, the programme scheduled now and upcoming br
 
 `GET /api/v1/schedule` returns the current programme and upcoming occurrences in the station timezone. See the [Phase 3 runbook](docs/phase-3.md) for the schedule management CLI and examples.
 
+Listeners can open public chat and post with a display name. See the [Phase 5 runbook](docs/phase-5.md) for transport settings, moderation, and retention.
+
 ## Prepare a cPanel release
 
 Run `npm ci` and `npm run build:deploy` under Node.js 22 on your development machine. Commit the updated `deploy/frontend/` files with the source. The manual Git task checks the locked production dependencies and copies the prebuilt assets to the private application directory.

@@ -43,6 +43,15 @@ function readConfig(env = process.env) {
     throw new Error('STATION_TIMEZONE must be an IANA timezone')
   }
 
+  const chatTransport = env.CHAT_TRANSPORT ?? (production ? 'polling' : 'socket.io')
+  if (!['polling', 'socket.io'].includes(chatTransport)) {
+    throw new Error('CHAT_TRANSPORT must be polling or socket.io')
+  }
+  const chatRetentionDays = Number(env.CHAT_RETENTION_DAYS ?? 30)
+  if (!Number.isInteger(chatRetentionDays) || chatRetentionDays < 1 || chatRetentionDays > 3650) {
+    throw new Error('CHAT_RETENTION_DAYS must be a whole number from 1 to 3650')
+  }
+
   return {
     production,
     port,
@@ -52,6 +61,8 @@ function readConfig(env = process.env) {
     icecastStreamUrl: publicUrl(env, 'ICECAST_STREAM_URL', 'https://radio.cyiradio.com/live', production).href,
     icecastStatusUrl: publicUrl(env, 'ICECAST_STATUS_URL', 'https://radio.cyiradio.com/status.xsl', production).href,
     stationTimezone,
+    chatTransport,
+    chatRetentionDays,
   }
 }
 

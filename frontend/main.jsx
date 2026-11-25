@@ -1,6 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ListenerSchedule } from './listener-schedule.jsx'
+import { ListenerChat } from './listener-chat.jsx'
 import { RadioPlayer } from './radio-player.jsx'
 import studioPhoto from './studio-microphone.jpg'
 import './styles.css'
@@ -14,6 +15,7 @@ function App() {
           <nav aria-label="Listener navigation">
             <a href="#listen">Listen</a>
             <a href="#schedule">Schedule</a>
+            <a href="#chat">Chat</a>
           </nav>
         </div>
       </header>
@@ -26,6 +28,7 @@ function App() {
           <img className="studio-photo" src={studioPhoto} alt="" fetchPriority="high" />
         </section>
         <ListenerSchedule />
+        <ListenerChat />
       </main>
     </>
   )

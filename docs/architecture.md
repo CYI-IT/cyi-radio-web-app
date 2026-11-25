@@ -2,7 +2,7 @@
 
 The production application will run as one Express process entry point on Namecheap Stellar Plus under cPanel’s Node.js manager. Express will serve the compiled React frontend and same-origin `/api/v1` endpoints at `live.cyiradio.com`. Administrators use individual accounts with server-side RBAC and audit logging. PostgreSQL 10.23 is the compatibility target for application records and chat history. Drizzle Kit generates reviewed SQL migrations that an operator tests on that version and applies explicitly.
 
-Listeners play `https://radio.cyiradio.com/live` directly from the existing Icecast server. The backend calculates current and upcoming programmes from the effective schedule in `Africa/Accra`. Icecast status is tracked independently from the scheduled programme. The chat transport depends on the Stellar Plus account tests in the [Phase 0 report](phase-0.md).
+Listeners play `https://radio.cyiradio.com/live` directly from the existing Icecast server. The backend calculates current and upcoming programmes from the effective schedule in `Africa/Accra`. Icecast status is tracked independently from the scheduled programme. Chat uses PostgreSQL as the source of truth and HTTPS polling as the production default. Socket.IO can signal clients to refresh immediately. [Phase 5 runbook](phase-5.md)
 
 ## Database ERD
 
@@ -31,7 +31,7 @@ erDiagram
 
 `schedule_series` represents a dated one-time slot or a bounded or open-ended weekly recurrence. It stores station-local dates and start times, a duration in minutes and a seven-bit weekday mask for weekly schedules. The low bit is Monday. `schedule_exceptions` uses the series and original occurrence date as its primary key. The scheduler validates occurrence membership and checks effective time ranges, including overnight intervals and open-ended recurrences. A transaction-level PostgreSQL lock serializes schedule writes. Authorized overrides are recorded in `admin_activity_logs`. [Phase 3 runbook](phase-3.md)
 
-`chat_sessions` identifies anonymous participants independently of display name. `chat_messages` references the session, and `muted_users` records each restriction and its expiration. Programme, presenter and admin records support archival or deactivation to preserve historical references. The initial migration indexes schedule lookups, chat history and moderation. Phase 6 will define the authentication session and password recovery tables alongside the flows that use them.
+`chat_sessions` identifies anonymous participants independently of display name and stores a hash of the chat cookie token. `chat_messages` has a stable position for history and a revision for reconnects and moderation changes. `muted_users` records each restriction and its expiration. Programme, presenter and admin records support archival or deactivation to preserve historical references. Phase 6 will define the administrator authentication session and password recovery tables alongside the flows that use them.
 
 ## Repository layout
 

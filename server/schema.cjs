@@ -1,7 +1,7 @@
 const { randomUUID } = require('node:crypto')
 const { sql } = require('drizzle-orm')
 const {
-  check, date, index, integer, jsonb, pgTable, primaryKey, text, time, timestamp, uuid,
+  bigint, bigserial, check, date, index, integer, jsonb, pgTable, primaryKey, text, time, timestamp, uuid,
 } = require('drizzle-orm/pg-core')
 
 const id = () => uuid('id').primaryKey().$defaultFn(randomUUID)
@@ -129,6 +129,7 @@ const scheduleExceptions = pgTable('schedule_exceptions', {
 
 const chatSessions = pgTable('chat_sessions', {
   id: id(),
+  tokenHash: text('token_hash').unique(),
   displayName: text('display_name').notNull(),
   createdAt: createdAt(),
   lastSeenAt: instant('last_seen_at').defaultNow().notNull(),
@@ -138,6 +139,8 @@ const chatSessions = pgTable('chat_sessions', {
 
 const chatMessages = pgTable('chat_messages', {
   id: id(),
+  position: bigint('position', { mode: 'bigint' }).notNull().unique(),
+  revision: bigserial('revision', { mode: 'bigint' }).notNull().unique(),
   sessionId: uuid('session_id').notNull().references(() => chatSessions.id),
   body: text('body').notNull(),
   createdAt: createdAt(),
@@ -149,6 +152,7 @@ const chatMessages = pgTable('chat_messages', {
   index('chat_messages_history_idx').on(table.createdAt, table.id).where(sql`${table.deletedAt} IS NULL`),
   index('chat_messages_created_at_idx').on(table.createdAt),
   index('chat_messages_session_idx').on(table.sessionId),
+  index('chat_messages_session_position_idx').on(table.sessionId, table.position),
 ])
 
 const mutedUsers = pgTable('muted_users', {

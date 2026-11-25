@@ -354,6 +354,125 @@ h3 {
   margin-top: .75rem;
 }
 
+.listener-chat {
+  margin-top: 3rem;
+  scroll-margin-top: 1rem;
+}
+
+.chat-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.chat-header button {
+  margin: 0;
+}
+
+.chat-room {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.chat-room > button {
+  margin: 0 0 .75rem;
+}
+
+.chat-messages {
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.chat-messages:focus-visible,
+.chat-field input:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.chat-messages ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chat-message {
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.chat-message-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem .75rem;
+}
+
+.chat-message-meta strong {
+  font-weight: 600;
+}
+
+.chat-message-meta time {
+  color: var(--muted);
+  font-size: .8125rem;
+}
+
+.chat-form {
+  margin-top: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.chat-form label {
+  display: block;
+  margin-bottom: .5rem;
+  font-weight: 500;
+}
+
+.chat-field {
+  display: flex;
+  gap: .5rem;
+}
+
+.chat-field input {
+  flex: 1;
+  min-width: 0;
+  padding: .5rem .75rem;
+  border: 1px solid #8b998e;
+  border-radius: var(--control-radius);
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.chat-primary {
+  flex: none;
+  min-height: 2.75rem;
+  padding: .5rem .75rem;
+  border: 1px solid var(--green);
+  border-radius: var(--control-radius);
+  background: var(--green);
+  color: #fff;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.chat-primary:hover:not(:disabled) {
+  background: var(--green-dark);
+}
+
+.chat-error {
+  margin-top: .75rem;
+  color: #833629;
+}
+
 @media (max-width: 46rem) {
   .listen-hero,
   .schedule-grid {
@@ -372,7 +491,8 @@ h3 {
     height: clamp(8rem, 40vw, 12rem);
   }
 
-  .listener-schedule {
+  .listener-schedule,
+  .listener-chat {
     margin-top: 2rem;
   }
 

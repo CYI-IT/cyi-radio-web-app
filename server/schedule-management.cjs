@@ -1,7 +1,7 @@
 const { randomBytes, randomUUID, scryptSync } = require('node:crypto')
 const { and, asc, eq, isNull, ne, sql } = require('drizzle-orm')
-const { admins, adminRoles, rolePermissions, presenters, programmes, scheduleSeries, scheduleExceptions,
-  adminActivityLogs } = require('./schema.cjs')
+const { admins, adminRoles, presenters, programmes, scheduleSeries, scheduleExceptions } = require('./schema.cjs')
+const { authorizeAdmin: authorize, recordAdminAction: record } = require('./admin-actor.cjs')
 const { ScheduleError, fields, text, emailAddress, uuid, date, catalogInput, seriesInput, exceptionInput } =
   require('./schedule-input.cjs')
 const { includesDate, singleOccurrence, segmentsForSeries, findConflict } = require('./occurrences.cjs')
@@ -18,23 +18,6 @@ function writeTransaction(db, write) {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(434721, 2)`)
     return write(tx)
   }, { isolationLevel: 'read committed' })
-}
-
-async function authorize(db, email, required) {
-  const [admin] = await db.select({ id: admins.id }).from(admins)
-    .where(and(eq(admins.email, email), isNull(admins.deactivatedAt)))
-  if (!admin) throw new ScheduleError('Use an active administrator account.')
-
-  const rows = await db.select({ key: rolePermissions.permissionKey }).from(adminRoles)
-    .innerJoin(rolePermissions, eq(adminRoles.roleKey, rolePermissions.roleKey))
-    .where(eq(adminRoles.adminId, admin.id))
-  const permissions = new Set(rows.map(row => row.key))
-  if (!required.some(key => permissions.has(key))) throw new ScheduleError('The administrator lacks permission for this operation.')
-  return { id: admin.id, permissions }
-}
-
-function record(db, actor, action, resource, resourceId, metadata) {
-  return db.insert(adminActivityLogs).values({ adminId: actor.id, action, resource, resourceId, metadata })
 }
 
 async function getCatalogItem(db, table, id) {
