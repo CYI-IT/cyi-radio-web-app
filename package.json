@@ -6,14 +6,15 @@
     "node": "^22.12.0 || ^24.0.0"
   },
   "scripts": {
-    "build": "vite build",
-    "build:deploy": "vite build --outDir deploy/frontend --emptyOutDir",
+    "build": "node scripts/build-frontend.mjs",
+    "build:deploy": "node scripts/build-frontend.mjs --deploy",
     "start": "node --env-file-if-exists=.env app.js",
     "db:generate": "drizzle-kit generate --config drizzle.config.cjs",
     "db:inspect": "node scripts/db.cjs inspect",
     "db:migrate": "node --env-file-if-exists=.env scripts/db.cjs migrate",
     "db:status": "node --env-file-if-exists=.env scripts/db.cjs status",
     "db:verify": "node --env-file-if-exists=.env scripts/db.cjs verify",
+    "schedule:manage": "node --env-file-if-exists=.env scripts/schedule.cjs",
     "probe:socket": "node probes/phase-0/socket-probe.cjs"
   },
   "dependencies": {

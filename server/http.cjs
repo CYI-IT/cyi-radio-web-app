@@ -3,6 +3,7 @@ const { join } = require('node:path')
 const express = require('express')
 const { stationSettings } = require('./schema.cjs')
 const { createStreamStatus } = require('./stream.cjs')
+const { publicSchedule } = require('./schedule-data.cjs')
 
 function createApp({ config, database, frontend }) {
   const app = express()
@@ -32,6 +33,16 @@ function createApp({ config, database, frontend }) {
   })
   api.get('/stream', async (_request, response) => {
     response.json(await getStreamStatus())
+  })
+  api.get('/schedule', async (_request, response) => {
+    if (database) {
+      try {
+        return response.json(await publicSchedule(database.db, config.stationTimezone))
+      } catch (error) {
+        console.error('Schedule read failed', error.cause?.code ?? error.code ?? 'unknown')
+      }
+    }
+    response.status(503).json({ status: 'unavailable' })
   })
   api.get('/ready', async (_request, response) => {
     if (database) {

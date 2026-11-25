@@ -29,7 +29,7 @@ erDiagram
     }
 ```
 
-`schedule_series` represents a dated one-time slot or a bounded or open-ended weekly recurrence. It stores station-local dates and start times, a duration in minutes and a seven-bit weekday mask for weekly schedules. The low bit is Monday. `schedule_exceptions` uses the series and original occurrence date as its primary key. The scheduler will validate occurrence membership and evaluate overlaps using effective start and end timestamps, including intervals that cross midnight. It will record authorized overrides in `admin_activity_logs`.
+`schedule_series` represents a dated one-time slot or a bounded or open-ended weekly recurrence. It stores station-local dates and start times, a duration in minutes and a seven-bit weekday mask for weekly schedules. The low bit is Monday. `schedule_exceptions` uses the series and original occurrence date as its primary key. The scheduler validates occurrence membership and checks effective time ranges, including overnight intervals and open-ended recurrences. A transaction-level PostgreSQL lock serializes schedule writes. Authorized overrides are recorded in `admin_activity_logs`. [Phase 3 runbook](phase-3.md)
 
 `chat_sessions` identifies anonymous participants independently of display name. `chat_messages` references the session, and `muted_users` records each restriction and its expiration. Programme, presenter and admin records support archival or deactivation to preserve historical references. The initial migration indexes schedule lookups, chat history and moderation. Phase 6 will define the authentication session and password recovery tables alongside the flows that use them.
 

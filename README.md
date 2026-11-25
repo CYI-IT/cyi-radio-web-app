@@ -18,7 +18,9 @@ npm start
 
 Open `http://localhost:3000` for the React page. `GET /api/v1/health` reports the running Node.js version and process identifier. `GET /api/v1/ready` returns HTTP 200 once the database is reachable and the `station_settings` table is queryable. Use `npm run db:verify` to check the full schema and migration history.
 
-The home page has a live player. `GET /api/v1/stream` reports Icecast availability and returns the public audio URL. See the [Phase 2 runbook](docs/phase-2.md) for player verification.
+The home page shows the live player, the programme scheduled now and upcoming broadcasts in Accra time. See the [Phase 4 runbook](docs/phase-4.md) for the listener page. `GET /api/v1/stream` reports Icecast availability and returns the public audio URL. See the [Phase 2 runbook](docs/phase-2.md) for player verification.
+
+`GET /api/v1/schedule` returns the current programme and upcoming occurrences in the station timezone. See the [Phase 3 runbook](docs/phase-3.md) for the schedule management CLI and examples.
 
 ## Prepare a cPanel release
 

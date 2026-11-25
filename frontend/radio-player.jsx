@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { usePublicFeed } from './public-feed.js'
 
 const streamLabels = {
   checking: 'Checking stream status',
@@ -13,45 +14,10 @@ const playbackLabels = {
   error: 'Couldn’t play the stream. Try again in a moment.',
 }
 
-function useStreamStatus() {
-  const [stream, setStream] = useState({ status: 'checking', streamUrl: null })
-
-  useEffect(() => {
-    const controller = new AbortController()
-    let pending = false
-
-    async function refresh() {
-      if (pending || document.hidden) return
-      pending = true
-      try {
-        const response = await fetch('/api/v1/stream', { signal: controller.signal })
-        if (!response.ok) throw new Error('Stream check failed')
-        const result = await response.json()
-        if (!controller.signal.aborted) setStream(result)
-      } catch {
-        if (!controller.signal.aborted) {
-          setStream(previous => ({ ...previous, status: 'unknown' }))
-        }
-      } finally {
-        pending = false
-      }
-    }
-
-    refresh()
-    const interval = setInterval(refresh, 30_000)
-    document.addEventListener('visibilitychange', refresh)
-    return () => {
-      controller.abort()
-      clearInterval(interval)
-      document.removeEventListener('visibilitychange', refresh)
-    }
-  }, [])
-
-  return stream
-}
-
 export function RadioPlayer() {
-  const { status, streamUrl } = useStreamStatus()
+  const { state, data } = usePublicFeed('/api/v1/stream')
+  const status = state === 'ready' ? data?.status ?? 'unknown' : state === 'loading' ? 'checking' : 'unknown'
+  const streamUrl = data?.streamUrl
   const audioRef = useRef(null)
   const activeAttempt = useRef(null)
   const [playback, setPlayback] = useState('idle')
@@ -98,13 +64,11 @@ export function RadioPlayer() {
   }
 
   return (
-    <section className="radio-player" aria-labelledby="radio-player-heading">
-      <div className="radio-player-title">
-        <h2 id="radio-player-heading">Listen live</h2>
-        <p className="stream-status" data-status={status} role="status">{streamLabels[status]}</p>
-      </div>
+    <div className="radio-player">
+      <p className="stream-status" data-status={status} role="status">{streamLabels[status]}</p>
       <div className="player-controls">
         <button type="button" className="playback-button" disabled={!streamUrl} onClick={canStop ? () => stop() : play}>
+          <span className={canStop ? 'stop-symbol' : 'play-symbol'} aria-hidden="true" />
           {canStop ? 'Stop' : playback === 'error' ? 'Try again' : 'Play'}
         </button>
         <button type="button" className="mute-button" aria-pressed={muted} onClick={() => setMuted(value => !value)}>
@@ -122,6 +86,6 @@ export function RadioPlayer() {
         onError={playbackFailed}
         onEnded={playbackFailed}
       />
-    </section>
+    </div>
   )
 }
