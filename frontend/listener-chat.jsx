@@ -1,4 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { ChatCircleDotsIcon } from '@phosphor-icons/react/ChatCircleDots'
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/PaperPlaneTilt'
 import { chatRequest, useChatHistory } from './chat-feed.js'
 
 const chatTime = new Intl.DateTimeFormat('en-GB', {
@@ -100,31 +102,33 @@ function ChatRoom() {
 
   return (
     <div className="chat-room">
-      {feed.before ? <button type="button" className="schedule-retry" disabled={feed.loadingEarlier} onClick={feed.loadEarlier}>
+      {feed.before ? <button type="button" className="button button-quiet" disabled={feed.loadingEarlier} onClick={feed.loadEarlier}>
         {feed.loadingEarlier ? 'Loading earlier messages…' : 'Load earlier messages'}
       </button> : null}
       {feed.state === 'loading' ? <p className="schedule-message" role="status">Loading chat…</p> : null}
       {feed.state === 'error' ? (
         <p className="schedule-message" role="status">
-          Chat connection interrupted. <button type="button" className="schedule-retry" onClick={feed.refresh}>Retry chat</button>
+          Chat connection interrupted. <button type="button" className="button button-quiet" onClick={feed.refresh}>Retry chat</button>
         </p>
       ) : null}
-      {feed.state === 'ready' && !feed.messages.length ? <p className="schedule-message">No messages yet</p> : null}
+      {feed.state === 'ready' && !feed.messages.length ? <p className="schedule-message">No messages yet. Say hi to get things started.</p> : null}
       <ChatMessages messages={feed.messages} />
       {session ? (
         <form className="chat-form" onSubmit={send}>
           <label htmlFor="chat-message">Message as {session.displayName}</label>
           <div className="chat-field">
-            <input id="chat-message" value={draft} onChange={event => setDraft(event.target.value)} maxLength={500} readOnly={busy} required />
-            <button type="submit" className="chat-primary" disabled={busy || !draft.trim()}>Send</button>
+            <input id="chat-message" placeholder="Write a message" value={draft} onChange={event => setDraft(event.target.value)} maxLength={500} readOnly={busy} required />
+            <button type="submit" className="button button-accent chat-primary" aria-label="Send" disabled={busy || !draft.trim()}>
+              <PaperPlaneTiltIcon size={20} weight="fill" aria-hidden="true" />
+            </button>
           </div>
         </form>
       ) : (
         <form className="chat-form" onSubmit={join}>
           <label htmlFor="chat-name">Display name</label>
           <div className="chat-field">
-            <input id="chat-name" value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={30} required />
-            <button type="submit" className="chat-primary" disabled={busy || starting}>Join chat</button>
+            <input id="chat-name" placeholder="Your name" autoComplete="nickname" value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={30} required />
+            <button type="submit" className="button button-accent chat-primary" disabled={busy || starting}>{busy ? 'Joining…' : 'Join chat'}</button>
           </div>
         </form>
       )}
@@ -133,16 +137,22 @@ function ChatRoom() {
   )
 }
 
-export function ListenerChat() {
-  const [open, setOpen] = useState(false)
+export function ListenerChat({ open, onToggle }) {
   return (
     <section id="chat" className="listener-chat" aria-labelledby="chat-heading">
-      <header className="chat-header">
+      <header className="section-header">
         <h2 id="chat-heading">Listener chat</h2>
-        <button type="button" className="schedule-retry" aria-controls="chat-panel" aria-expanded={open}
-          onClick={() => setOpen(previous => !previous)}>{open ? 'Close chat' : 'Open chat'}</button>
       </header>
-      <div id="chat-panel" hidden={!open}>{open ? <ChatRoom /> : null}</div>
+      <div className="chat-panel">
+        <div className="chat-intro">
+          <span className="chat-art"><ChatCircleDotsIcon size={31} weight="duotone" aria-hidden="true" /></span>
+          {open ? null : <p>Say hi and chat with other listeners while you tune in.</p>}
+          <button type="button" className="button button-quiet" aria-controls="chat-room" aria-expanded={open} onClick={onToggle}>
+            {open ? 'Close chat' : 'Open chat'}
+          </button>
+        </div>
+        <div id="chat-room" hidden={!open}>{open ? <ChatRoom /> : null}</div>
+      </div>
     </section>
   )
 }
