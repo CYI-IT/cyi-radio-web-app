@@ -32,7 +32,7 @@ function readConfig(env = process.env) {
     throw new Error('SESSION_SECRET must be at least 32 bytes')
   }
 
-  const defaultOrigin = production ? 'https://live.cyiradio.org' : `http://localhost:${port}`
+  const defaultOrigin = production ? 'https://live.cyiradio.com' : `http://localhost:${port}`
   const appUrl = publicUrl(env, 'PUBLIC_APP_URL', defaultOrigin, production)
   if (appUrl.href !== `${appUrl.origin}/`) throw new Error('PUBLIC_APP_URL must be an origin')
 

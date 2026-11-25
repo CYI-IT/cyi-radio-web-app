@@ -2,15 +2,18 @@ const { randomUUID } = require('node:crypto')
 const { join } = require('node:path')
 const express = require('express')
 const { stationSettings } = require('./schema.cjs')
+const { createStreamStatus } = require('./stream.cjs')
 
 function createApp({ config, database, frontend }) {
   const app = express()
   const bootId = randomUUID()
+  const getStreamStatus = createStreamStatus(config)
+  const streamOrigin = new URL(config.icecastStreamUrl).origin
   app.disable('x-powered-by')
 
   app.use((_request, response, next) => {
     response.set({
-      'Content-Security-Policy': "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'",
+      'Content-Security-Policy': `default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; media-src 'self' ${streamOrigin}`,
       'Referrer-Policy': 'same-origin',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
@@ -26,6 +29,9 @@ function createApp({ config, database, frontend }) {
   })
   api.get('/health', (_request, response) => {
     response.json({ status: 'ok', node: process.versions.node, bootId })
+  })
+  api.get('/stream', async (_request, response) => {
+    response.json(await getStreamStatus())
   })
   api.get('/ready', async (_request, response) => {
     if (database) {

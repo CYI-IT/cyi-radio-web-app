@@ -39,7 +39,7 @@ The root should load the React page and its versioned assets. Private files and 
 
 ## Configure the cPanel application
 
-The repository is already configured with the CYI-IT GitHub remote. Keep the Phase 0 app on its historical commit. For the application, clone the repository through cPanel Git Version Control into a private directory. In **Setup Node.js App**, select Node.js **22**, mode **Production**, application root `apps/cyi-radio`, domain `live.cyiradio.org` at `/`, and startup file `app.js`. Configure the domain certificate and HTTPS redirect in cPanel.
+The repository is already configured with the CYI-IT GitHub remote. Keep the Phase 0 app on its historical commit. For the application, clone the repository through cPanel Git Version Control into a private directory. In **Setup Node.js App**, select Node.js **22**, mode **Production**, application root `apps/cyi-radio`, domain `live.cyiradio.com` at `/`, and startup file `app.js`. Configure the domain certificate and HTTPS redirect in cPanel.
 
 | Environment variable | cPanel value |
 | --- | --- |
@@ -47,7 +47,7 @@ The repository is already configured with the CYI-IT GitHub remote. Keep the Pha
 | `PORT` | Omit for the validated Passenger setup. Set a numeric port only if the hosting configuration requires one. |
 | `DATABASE_URL` | Connection URL for the dedicated application database and login. Percent-encode reserved characters in the password. |
 | `SESSION_SECRET` | Generate a random secret, for example with `openssl rand -hex 32`. Save it in the app's environment settings. |
-| `PUBLIC_APP_URL` | `https://live.cyiradio.org` |
+| `PUBLIC_APP_URL` | `https://live.cyiradio.com` |
 | `ICECAST_STREAM_URL` | `https://radio.cyiradio.com/live` |
 | `ICECAST_STATUS_URL` | `https://radio.cyiradio.com/status.xsl` |
 | `STATION_TIMEZONE` | `Africa/Accra` |

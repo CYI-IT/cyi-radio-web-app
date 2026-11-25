@@ -18,6 +18,8 @@ npm start
 
 Open `http://localhost:3000` for the React page. `GET /api/v1/health` reports the running Node.js version and process identifier. `GET /api/v1/ready` returns HTTP 200 once the database is reachable and the `station_settings` table is queryable. Use `npm run db:verify` to check the full schema and migration history.
 
+The home page has a live player. `GET /api/v1/stream` reports Icecast availability and returns the public audio URL. See the [Phase 2 runbook](docs/phase-2.md) for player verification.
+
 ## Prepare a cPanel release
 
 Run `npm ci` and `npm run build:deploy` under Node.js 22 on your development machine. Commit the updated `deploy/frontend/` files with the source. The manual Git task checks the locked production dependencies and copies the prebuilt assets to the private application directory.

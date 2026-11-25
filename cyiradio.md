@@ -6,7 +6,7 @@ The following decisions are final and should guide implementation:
 
 - Hosting provider: Namecheap.
 - Hosting plan: Stellar Plus.
-- Application domain: https://live.cyiradio.org.
+- Application domain: https://live.cyiradio.com.
 - Existing Icecast server: https://radio.cyiradio.com.
 - Public Icecast mountpoint: /live.
 - Public stream URL: https://radio.cyiradio.com/live.
@@ -270,7 +270,7 @@ Recommended deployment configuration:
 - Repository hosted on GitHub.
 - Repository cloned into a private application directory.
 - Node.js application managed through Setup Node.js App.
-- Application URL configured as live.cyiradio.org.
+- Application URL configured as live.cyiradio.com.
 - React production assets served through Express.
 - PostgreSQL credentials configured through cPanel environment variables.
 
@@ -335,7 +335,7 @@ Required variables:
 
 Use the following initial values where appropriate:
 
-PUBLIC_APP_URL=https://live.cyiradio.org
+PUBLIC_APP_URL=https://live.cyiradio.com
 
 ICECAST_STREAM_URL=https://radio.cyiradio.com/live
 
