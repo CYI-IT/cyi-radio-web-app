@@ -16,7 +16,7 @@ The HTTP feed fetches 30 messages at a time. Earlier pages use a stable message 
 | `CHAT_TRANSPORT=socket.io` | WebSocket notifications with HTTPS polling and catch-up. This is the local default. |
 | `CHAT_RETENTION_DAYS=30` | Number of days records are kept before the prune command removes them. |
 
-Keep the production transport on polling while verifying the deployed chat on Stellar Plus and checking cPanel Resource Usage. If the WebSocket tests and hosting counters pass, set `CHAT_TRANSPORT=socket.io` and restart the Node app. Test multiple tabs and a dropped connection against the deployed chat. [Phase 0 hosting compatibility](phase-0.md)
+The staging probe passed and the account owner reported very low cPanel resource usage. To verify WebSocket notifications against the deployed chat on Stellar Plus, set `CHAT_TRANSPORT=socket.io` and restart the Node app. Test multiple tabs and a dropped connection, then review cPanel Resource Usage for that deployment test. [Phase 0 hosting compatibility](phase-0.md)
 
 ## Verify locally
 
@@ -64,4 +64,4 @@ Prior days disappear from public history at each listener's local midnight. The 
 - PostgreSQL 10.23 passed the migration with pre-existing chat rows and preserved their order. A second migration run and schema verification passed. The migration also applied to the local project database on PostgreSQL 17.11.
 - API and CLI tests covered session recovery, per-session and per-connection limits, duplicate sends, pagination, WebSocket notification, reconnection to the same session after restart, mute and unmute, moderator permissions, deletion, and retention.
 - Chrome verified that chat stays dormant until opened, then loads earlier messages, restores the display name after reload, shows HTML-like input as literal text, and removes moderated messages in both transport modes.
-- On 25 November 2026, the Stellar Plus probe passed with ten WebSocket clients over 15 minutes. All broadcasts reached all clients. The cPanel Resource Usage counters and the deployed Phase 5 chat call for verification before enabling production WebSocket notifications. [Phase 0 compatibility results](phase-0.md#account-compatibility-results)
+- On 25 November 2026, the Stellar Plus probe passed with ten WebSocket clients over 15 minutes. All broadcasts reached all clients. The account owner reported very low cPanel resource usage during the probe window. The deployed chat still needs a WebSocket check on Stellar Plus. [Phase 0 compatibility results](phase-0.md#account-compatibility-results)
