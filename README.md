@@ -24,6 +24,8 @@ The home page shows the live player, the programme scheduled now and upcoming br
 
 Listeners can open public chat and post with a display name. See the [Phase 5 runbook](docs/phase-5.md) for transport settings, moderation, and retention.
 
+Administrators sign in at `/admin`. See the [Phase 6 runbook](docs/phase-6.md) for initial Super Admin setup, password recovery, and verification.
+
 ## Prepare a cPanel release
 
 Run `npm ci` and `npm run build:deploy` under Node.js 22 on your development machine. Commit the updated `deploy/frontend/` files with the source. The manual Git task checks the locked production dependencies and copies the prebuilt assets to the private application directory.

@@ -12,6 +12,8 @@ erDiagram
     roles ||--o{ admin_roles : assigned_as
     roles ||--o{ role_permissions : grants
     permissions ||--o{ role_permissions : included_in
+    admins ||--o{ admin_sessions : signs_in
+    admins ||--o| admin_password_links : requests
     admins ||--o{ admin_activity_logs : performs
     programmes ||--o{ schedule_series : scheduled_as
     presenters ||--o{ schedule_series : presents
@@ -31,7 +33,9 @@ erDiagram
 
 `schedule_series` represents a dated one-time slot or a bounded or open-ended weekly recurrence. It stores station-local dates and start times, a duration in minutes and a seven-bit weekday mask for weekly schedules. The low bit is Monday. `schedule_exceptions` uses the series and original occurrence date as its primary key. The scheduler validates occurrence membership and checks effective time ranges, including overnight intervals and open-ended recurrences. A transaction-level PostgreSQL lock serializes schedule writes. Authorized overrides are recorded in `admin_activity_logs`. [Phase 3 runbook](phase-3.md)
 
-`chat_sessions` identifies anonymous participants independently of display name and stores a hash of the chat cookie token. `chat_messages` has a stable position for history and a revision for reconnects and moderation changes. `muted_users` records each restriction and its expiration. Programme, presenter and admin records support archival or deactivation to preserve historical references. Phase 6 will define the administrator authentication session and password recovery tables alongside the flows that use them.
+`chat_sessions` identifies anonymous participants independently of display name and stores a hash of the chat cookie token. `chat_messages` has a stable position for history and a revision for reconnects and moderation changes. `muted_users` records each restriction and its expiration. Programme, presenter and admin records support archival or deactivation to preserve historical references.
+
+Administrator session tokens and one-time password links are stored as keyed digests in PostgreSQL. The `admin_auth_limits` table keeps shared attempt counts across application processes. Role assignments and permissions are checked on the backend. [Phase 6 runbook](phase-6.md)
 
 ## Repository layout
 

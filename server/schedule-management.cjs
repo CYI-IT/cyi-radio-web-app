@@ -1,7 +1,8 @@
-const { randomBytes, randomUUID, scryptSync } = require('node:crypto')
+const { randomUUID } = require('node:crypto')
 const { and, asc, eq, isNull, ne, sql } = require('drizzle-orm')
-const { admins, adminRoles, presenters, programmes, scheduleSeries, scheduleExceptions } = require('./schema.cjs')
+const { presenters, programmes, scheduleSeries, scheduleExceptions } = require('./schema.cjs')
 const { authorizeAdmin: authorize, recordAdminAction: record } = require('./admin-actor.cjs')
+const { bootstrapAdmin } = require('./admin-auth.cjs')
 const { ScheduleError, fields, text, emailAddress, uuid, date, catalogInput, seriesInput, exceptionInput } =
   require('./schedule-input.cjs')
 const { includesDate, singleOccurrence, segmentsForSeries, findConflict } = require('./occurrences.cjs')
@@ -135,38 +136,21 @@ async function changeException(db, actor, id, occurrenceDate, input, remove) {
   return saved
 }
 
-async function bootstrapScheduleAdmin(db, email, name) {
-  const normalized = emailAddress(email)
-  const displayName = text(name, 'Display name', 200)
-  return writeTransaction(db, async tx => {
-    const [existing] = await tx.select({ id: admins.id }).from(admins).limit(1)
-    if (existing) throw new ScheduleError('The initial administrator can only be created on a database with no administrators.')
-    const salt = randomBytes(16)
-    const hash = scryptSync(randomBytes(32), salt, 64)
-    const [admin] = await tx.insert(admins).values({
-      email: normalized, displayName, passwordHash: `scrypt:${salt.toString('hex')}:${hash.toString('hex')}`,
-    }).returning({ id: admins.id, email: admins.email, displayName: admins.displayName })
-    await tx.insert(adminRoles).values({ adminId: admin.id, roleKey: 'super-admin' })
-    await record(tx, admin, 'bootstrap', 'admin', admin.id, { role: 'super-admin' })
-    return admin
-  })
-}
-
-function createScheduleManager(db, email) {
-  const actorEmail = emailAddress(email)
+function createScheduleManager(db, identity) {
+  const actorIdentity = typeof identity === 'string' ? emailAddress(identity) : identity
   const manageCatalog = ['programmes.manage']
   const manageSchedule = ['schedule.manage']
   const write = (permissions, change) =>
-    writeTransaction(db, async tx => change(tx, await authorize(tx, actorEmail, permissions)))
+    writeTransaction(db, async tx => change(tx, await authorize(tx, actorIdentity, permissions, true)))
 
   function catalogManager({ table, label, description, resource }) {
     return {
       async list() {
-        await authorize(db, actorEmail, [...manageCatalog, ...manageSchedule])
+        await authorize(db, actorIdentity, [...manageCatalog, ...manageSchedule])
         return db.select().from(table).orderBy(asc(table[label]), asc(table.id))
       },
       async get(id) {
-        await authorize(db, actorEmail, [...manageCatalog, ...manageSchedule])
+        await authorize(db, actorIdentity, [...manageCatalog, ...manageSchedule])
         return getCatalogItem(db, table, id)
       },
       create: input => write(manageCatalog, async (tx, actor) => {
@@ -199,11 +183,11 @@ function createScheduleManager(db, email) {
     presenters: catalogManager(catalog.presenters),
     series: {
       async list() {
-        await authorize(db, actorEmail, manageSchedule)
+        await authorize(db, actorIdentity, manageSchedule)
         return loadSeries(db)
       },
       async get(id) {
-        await authorize(db, actorEmail, manageSchedule)
+        await authorize(db, actorIdentity, manageSchedule)
         return getSeries(db, id)
       },
       create: input => write(manageSchedule, (tx, actor) => changeSeries(tx, actor, input)),
@@ -228,4 +212,4 @@ function createScheduleManager(db, email) {
   }
 }
 
-module.exports = { bootstrapScheduleAdmin, createScheduleManager }
+module.exports = { bootstrapScheduleAdmin: bootstrapAdmin, createScheduleManager }

@@ -16,6 +16,7 @@
     "db:verify": "node --env-file-if-exists=.env scripts/db.cjs verify",
     "schedule:manage": "node --env-file-if-exists=.env scripts/schedule.cjs",
     "chat:manage": "node --env-file-if-exists=.env scripts/chat.cjs",
+    "admin:manage": "node --env-file-if-exists=.env scripts/admin.cjs",
     "probe:socket": "node probes/phase-0/socket-probe.cjs"
   },
   "dependencies": {

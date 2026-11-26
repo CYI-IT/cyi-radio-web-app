@@ -44,6 +44,28 @@ const adminRoles = pgTable('admin_roles', {
   index('admin_roles_role_idx').on(table.roleKey),
 ])
 
+const adminSessions = pgTable('admin_sessions', {
+  tokenHash: text('token_hash').primaryKey(),
+  adminId: uuid('admin_id').notNull().references(() => admins.id),
+  expiresAt: instant('expires_at').notNull(),
+  createdAt: createdAt(),
+}, table => [
+  index('admin_sessions_admin_idx').on(table.adminId),
+  index('admin_sessions_expiry_idx').on(table.expiresAt),
+])
+
+const adminPasswordLinks = pgTable('admin_password_links', {
+  adminId: uuid('admin_id').primaryKey().references(() => admins.id),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: instant('expires_at').notNull(),
+})
+
+const adminAuthLimits = pgTable('admin_auth_limits', {
+  key: text('key').primaryKey(),
+  attempts: integer('attempts').notNull(),
+  expiresAt: instant('expires_at').notNull(),
+}, table => [index('admin_auth_limits_expiry_idx').on(table.expiresAt)])
+
 const rolePermissions = pgTable('role_permissions', {
   roleKey: text('role_key').notNull().references(() => roles.key),
   permissionKey: text('permission_key').notNull().references(() => permissions.key),
@@ -187,9 +209,11 @@ const adminActivityLogs = pgTable('admin_activity_logs', {
 }, table => [
   index('admin_activity_logs_admin_idx').on(table.adminId, table.createdAt),
   index('admin_activity_logs_resource_idx').on(table.resource, table.resourceId, table.createdAt),
+  index('admin_activity_logs_created_idx').on(table.createdAt, table.id),
 ])
 
 module.exports = {
-  admins, roles, permissions, adminRoles, rolePermissions, presenters, programmes, scheduleSeries,
+  admins, roles, permissions, adminRoles, adminSessions, adminPasswordLinks, adminAuthLimits,
+  rolePermissions, presenters, programmes, scheduleSeries,
   scheduleExceptions, chatSessions, chatMessages, mutedUsers, stationSettings, adminActivityLogs,
 }

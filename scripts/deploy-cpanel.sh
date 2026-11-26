@@ -15,7 +15,7 @@ node -e 'if (!/^22\./.test(process.versions.node)) throw new Error("Select Node.
 printf 'Using Node.js %s and npm %s\n' "$(node --version)" "$(npm --version)"
 
 frontend="$repo/deploy/frontend"
-if [[ ! -s "$frontend/index.html" || ! -d "$frontend/assets" ]]; then
+if [[ ! -s "$frontend/index.html" || ! -s "$frontend/admin.html" || ! -d "$frontend/assets" ]]; then
   echo 'Frontend build missing. Run npm run build:deploy before committing the release.' >&2
   exit 1
 fi
@@ -40,9 +40,9 @@ echo 'Copying prebuilt frontend assets into the application directory.'
 mkdir -p "$app_root/dist/assets"
 cp -R "$repo/server" "$repo/migrations" "$app_root/"
 mkdir -p "$app_root/scripts"
-cp "$repo/scripts/db.cjs" "$repo/scripts/schedule.cjs" "$repo/scripts/chat.cjs" "$app_root/scripts/"
+cp "$repo/scripts/db.cjs" "$repo/scripts/schedule.cjs" "$repo/scripts/chat.cjs" "$repo/scripts/admin.cjs" "$app_root/scripts/"
 cp "$repo/app.js" "$repo/package.json" "$repo/package-lock.json" "$app_root/"
 cp -R "$frontend/assets/." "$app_root/dist/assets/"
-cp "$frontend/index.html" "$app_root/dist/"
+cp "$frontend/index.html" "$frontend/admin.html" "$app_root/dist/"
 
 echo 'Files deployed. Use Run NPM Install and Restart in Setup Node.js App.'

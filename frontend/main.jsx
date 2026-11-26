@@ -135,6 +135,18 @@ function App() {
   const radio = useRadioPlayer();
   const schedule = usePublicFeed("/api/v1/schedule?day=today");
   const current = schedule.state === "ready" ? schedule.data?.current : null;
+  const [description, setDescription] = useState("Music, shows and conversations on CYI Radio.");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/v1/station", { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((station) => {
+        if (typeof station?.description === "string") setDescription(station.description);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const anchor = window.location.hash.slice(1);
@@ -204,7 +216,7 @@ function App() {
                 <br /> <span>Reach In</span>
               </h1>
               <p className="hero-description">
-                Music, shows and conversations on CYI Radio.
+                {description}
               </p>
               <PlayButton radio={radio} />
             </div>

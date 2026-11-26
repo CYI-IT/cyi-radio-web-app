@@ -1,14 +1,14 @@
-const { and, desc, eq, isNull } = require('drizzle-orm')
+const { and, desc, eq, isNull, sql } = require('drizzle-orm')
 const { chatMessages, chatSessions, mutedUsers } = require('./schema.cjs')
 const { authorizeAdmin, recordAdminAction } = require('./admin-actor.cjs')
 const { emailAddress } = require('./schedule-input.cjs')
 const { ChatError, chatId, chatText } = require('./chat-input.cjs')
 const { activeMute, chatWrite, nextChatRevision } = require('./chat-data.cjs')
 
-function createChatModerator(db, email) {
-  const actorEmail = emailAddress(email)
-  const authorize = tx => authorizeAdmin(tx, actorEmail, ['chat.moderate'])
-  const write = action => chatWrite(db, async tx => action(tx, await authorize(tx)))
+function createChatModerator(db, identity) {
+  const actorIdentity = typeof identity === 'string' ? emailAddress(identity) : identity
+  const authorize = (tx, lock) => authorizeAdmin(tx, actorIdentity, ['chat.moderate'], lock)
+  const write = action => chatWrite(db, async tx => action(tx, await authorize(tx, true)))
 
   return {
     async recent() {
@@ -18,6 +18,14 @@ function createChatModerator(db, email) {
         body: chatMessages.body, createdAt: chatMessages.createdAt,
       }).from(chatMessages).innerJoin(chatSessions, eq(chatMessages.sessionId, chatSessions.id))
         .where(isNull(chatMessages.deletedAt)).orderBy(desc(chatMessages.position)).limit(30)
+    },
+
+    async mutes() {
+      await authorize(db)
+      return db.select({ id: mutedUsers.id, sessionId: chatSessions.id, displayName: chatSessions.displayName,
+        reason: mutedUsers.reason, expiresAt: mutedUsers.expiresAt })
+        .from(mutedUsers).innerJoin(chatSessions, eq(chatSessions.id, mutedUsers.sessionId))
+        .where(activeMute(chatSessions.id, sql`clock_timestamp()`)).orderBy(desc(mutedUsers.createdAt))
     },
 
     delete(id) {

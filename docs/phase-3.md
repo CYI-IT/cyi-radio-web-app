@@ -19,7 +19,7 @@ npm run db:verify
 npm run schedule:manage -- bootstrap your-email@example.com "Your Name"
 ```
 
-The CLI is for a trusted operator with shell and database access. The administrator email selects the account whose permission grants and ID are used for each operation. Bootstrap stores a hash of a discarded random password. Phase 6 will provide browser sign-in, credential setup and the administration dashboard. Phase 4 will render the listener schedule from the public API.
+The CLI is for a trusted operator with shell and database access. The administrator email selects the account whose permission grants and ID are used for each operation. To set a browser password for the account created with this CLI, run `npm run admin:manage -- recover your-email@example.com`. [Browser administration](phase-6.md)
 
 ## Create and verify a schedule locally
 

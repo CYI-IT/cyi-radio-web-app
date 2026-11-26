@@ -45,7 +45,7 @@ npm run chat:manage -- "$actor" unmute SESSION_ID
 npm run chat:manage -- prune
 ```
 
-The `recent` command returns the message and session IDs. Deletion hides the message and sends a removal through the update feed. Mute changes take effect before subsequent sends, and all moderation changes are audited. Phase 6 will add the browser-based administrator interface.
+The `recent` command returns the message and session IDs. Deletion hides the message and sends a removal through the update feed. Mute changes take effect before subsequent sends, and all moderation changes are audited. Administrators with moderation access can also perform these actions from the browser. [Browser administration](phase-6.md)
 
 Prior days disappear from public history at each listener's local midnight. The `prune` command removes expired database records in batches of up to 1,000 per record type. Run it periodically from the app's private environment to enforce storage retention. It also removes inactive sessions with no remaining messages or moderation records. Active permanent mutes are retained.
 

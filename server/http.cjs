@@ -5,6 +5,8 @@ const { stationSettings } = require('./schema.cjs')
 const { createStreamStatus } = require('./stream.cjs')
 const { publicSchedule } = require('./schedule-data.cjs')
 const { chatRouter } = require('./chat-http.cjs')
+const { adminRouter } = require('./admin-http.cjs')
+const { readStationSettings } = require('./admin-management.cjs')
 
 function createApp({ config, database, frontend, chatRealtime = false, onChatChange = () => {} }) {
   const app = express()
@@ -48,6 +50,10 @@ function createApp({ config, database, frontend, chatRealtime = false, onChatCha
     response.status(503).json({ status: 'unavailable' })
   })
   api.use('/chat', chatRouter({ config, database, realtime: chatRealtime, notify: onChatChange }))
+  api.use('/admin', adminRouter({ config, database, notify: onChatChange }))
+  api.get('/station', async (_request, response) => {
+    response.json(await readStationSettings(database?.db))
+  })
   api.get('/ready', async (_request, response) => {
     if (database) {
       try {
@@ -68,13 +74,18 @@ function createApp({ config, database, frontend, chatRealtime = false, onChatCha
     index: false,
     redirect: false,
   }))
-  app.get(['/', '/index.html'], (_request, response, next) => {
-    response.sendFile(join(frontend, 'index.html'), error => {
+  function sendPage(name, response, next) {
+    response.sendFile(join(frontend, name), error => {
       if (error?.code === 'ENOENT') {
         return response.status(503).type('text').send('Frontend build unavailable')
       }
       if (error) next(error)
     })
+  }
+  app.get(['/', '/index.html'], (_request, response, next) => sendPage('index.html', response, next))
+  app.get('/admin', (_request, response, next) => {
+    response.set({ 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex' })
+    sendPage('admin.html', response, next)
   })
   app.use((_request, response) => response.status(404).type('text').send('Not found'))
   app.use((error, request, response, next) => {
