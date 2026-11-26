@@ -133,6 +133,7 @@ function SignalBars({ playing }) {
 }
 
 export function PlayerDock({ radio, current, logoUrl }) {
+  const programmeTitle = current?.programme?.title
   const silent = radio.muted || radio.volume === 0
   const VolumeIcon = silent ? SpeakerSlashIcon : SpeakerHighIcon
   const isPlaying = radio.playback === 'playing'
@@ -142,9 +143,13 @@ export function PlayerDock({ radio, current, logoUrl }) {
     <section className="player-dock" aria-label="Live radio player">
       <div className="dock-station">
         <img className="dock-art" src={logoUrl} alt="" width="710" height="327" />
-        <div className="dock-station-text">
-          <p className="dock-title">{current?.programme?.title ?? 'CYI Radio'}</p>
-          <p className="dock-subtitle">{current ? 'CYI Radio · Scheduled now' : 'Live radio'}</p>
+        <div className="dock-station-text" aria-live="polite" aria-atomic="true">
+          <p className="dock-title" title={programmeTitle}>{programmeTitle ?? 'CYI Radio'}</p>
+          {programmeTitle ? (
+            <p className="dock-subtitle dock-programme-status">
+              <span className="dock-station-name">CYI Radio · </span>On now
+            </p>
+          ) : <p className="dock-subtitle">Live radio</p>}
         </div>
       </div>
       <div className="dock-transport">

@@ -780,7 +780,7 @@ h3 {
 
   .dock-station { align-self: end; }
 
-  .dock-art, .dock-subtitle, .signal-bars { display: none; }
+  .dock-art, .dock-subtitle:not(.dock-programme-status), .dock-station-name, .signal-bars { display: none; }
 
   .dock-transport { display: contents; }
 
