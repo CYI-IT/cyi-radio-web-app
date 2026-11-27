@@ -9,6 +9,7 @@ const streamLabels = {
   checking: 'Checking stream',
   online: 'Live on air',
   offline: 'Stream offline',
+  disconnected: 'No internet connection',
   unknown: 'Stream status unavailable',
 }
 const playbackLabels = {
@@ -20,7 +21,8 @@ const playbackLabels = {
 
 export function useRadioPlayer() {
   const { state, data, refresh } = usePublicFeed('/api/v1/stream')
-  const status = state === 'ready' ? data?.status ?? 'unknown' : state === 'loading' ? 'checking' : 'unknown'
+  const status = state === 'ready' ? data?.status ?? 'unknown' : state === 'loading' ? 'checking'
+    : state === 'offline' ? 'disconnected' : 'unknown'
   const streamUrl = data?.streamUrl
   const audioRef = useRef(null)
   const activeAttempt = useRef(null)
@@ -94,6 +96,7 @@ export function useRadioPlayer() {
   return {
     status, playback, canStop, muted, volume, togglePlayback, toggleMute, changeVolume,
     canPlay: Boolean(streamUrl),
+    reachable: state === 'ready',
     checking: state === 'loading' || state === 'retrying',
     audioProps: {
       ref: audioRef, preload: 'none', muted,
@@ -111,8 +114,9 @@ export function LiveStatus({ status }) {
 }
 
 export function PlayButton({ radio, compact = false }) {
-  const { canStop, canPlay, checking, playback, togglePlayback } = radio
+  const { canStop, canPlay, checking, disconnected, playback, togglePlayback } = radio
   const label = canStop ? 'Stop listening'
+    : disconnected ? 'Offline'
     : checking && !canPlay ? 'Checking stream…'
     : !canPlay ? 'Retry stream'
     : playback === 'error' ? 'Try again'
@@ -121,7 +125,7 @@ export function PlayButton({ radio, compact = false }) {
 
   return (
     <button className={compact ? 'dock-play' : 'button button-accent hero-play'} type="button"
-      disabled={checking && !canPlay} onClick={togglePlayback} aria-label={compact ? label : undefined}>
+      disabled={!canStop && (disconnected || (checking && !canPlay))} onClick={togglePlayback} aria-label={compact ? label : undefined}>
       <Icon size={compact ? 20 : 21} weight="fill" aria-hidden="true" />
       {compact ? null : label}
     </button>

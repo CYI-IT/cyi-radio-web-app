@@ -8,17 +8,21 @@ import { ShareNetworkIcon } from "@phosphor-icons/react/ShareNetwork";
 import { XIcon } from "@phosphor-icons/react/X";
 import { ListenerSchedule } from "./listener-schedule.jsx";
 import { ListenerChat } from "./listener-chat.jsx";
+import { SchedulePage } from "./schedule-page.jsx";
+import { programmesOnDate, stationTimezone, useStationToday } from "./schedule-dates.js";
 import {
   LiveStatus,
   PlayButton,
   PlayerDock,
   useRadioPlayer,
 } from "./radio-player.jsx";
-import { usePublicFeed } from "./public-feed.js";
+import { useOnlineStatus, usePublicFeed } from "./public-feed.js";
 import broadcastPattern from "./broadcast-pattern.webp";
 import "./styles.css";
 
 const stationLogo = "/assets/CYI-radio-original-2.png";
+const offlineShell = document.documentElement.hasAttribute("data-offline-shell");
+const schedulePath = "/schedule";
 
 const sections = [
   { id: "listen", label: "Listen", Icon: HeadphonesIcon },
@@ -27,15 +31,13 @@ const sections = [
 ];
 
 function currentSection() {
-  return (
-    sections.find((section) => `#${section.id}` === window.location.hash)?.id ??
-    "listen"
-  );
+  if ([schedulePath, `${schedulePath}/`].includes(window.location.pathname)) return "schedule";
+  return window.location.hash === "#chat" ? "chat" : "listen";
 }
 
-function StationBrand({ onNavigate }) {
+function StationBrand({ href, onNavigate }) {
   return (
-    <a className="station-brand" href="#listen" onClick={onNavigate}>
+    <a className="station-brand" href={href} onClick={onNavigate}>
       <img src={stationLogo} alt="CYI Radio" width="710" height="327" />
     </a>
   );
@@ -132,12 +134,21 @@ function ShareStation() {
 function App() {
   const [activeSection, setActiveSection] = useState(currentSection);
   const [chatOpen, setChatOpen] = useState(() => currentSection() === "chat");
+  const deviceOnline = useOnlineStatus();
   const radio = useRadioPlayer();
   const schedule = usePublicFeed("/api/v1/schedule?day=today");
-  const current = schedule.state === "ready" ? schedule.data?.current : null;
+  const schedulePage = activeSection === "schedule";
+  const timezone = schedule.data?.timezone ?? stationTimezone;
+  const today = useStationToday(timezone);
+  const online = deviceOnline && (!offlineShell || radio.reachable || schedule.state === "ready");
+  const player = online ? radio : { ...radio, disconnected: true, status: "disconnected" };
+  const scheduledNow = online && schedule.state === "ready" ? schedule.data?.current : null;
+  const current = scheduledNow ? programmesOnDate([scheduledNow], today)[0] ?? null : null;
   const [description, setDescription] = useState("Music, shows and conversations on CYI Radio.");
+  const focusOnNavigation = useRef(false);
 
   useEffect(() => {
+    if (!online || schedulePage) return;
     const controller = new AbortController();
     fetch("/api/v1/station", { signal: controller.signal })
       .then((response) => response.ok ? response.json() : null)
@@ -146,24 +157,51 @@ function App() {
       })
       .catch(() => {});
     return () => controller.abort();
-  }, []);
+  }, [online, schedulePage]);
 
   useEffect(() => {
-    const anchor = window.location.hash.slice(1);
-    if (sections.some((section) => section.id === anchor)) {
-      document.getElementById(anchor)?.scrollIntoView({ behavior: "instant" });
-    }
-
     function syncNavigation() {
       const section = currentSection();
       setActiveSection(section);
       if (section === "chat") setChatOpen(true);
     }
     window.addEventListener("hashchange", syncNavigation);
-    return () => window.removeEventListener("hashchange", syncNavigation);
+    window.addEventListener("popstate", syncNavigation);
+    return () => {
+      window.removeEventListener("hashchange", syncNavigation);
+      window.removeEventListener("popstate", syncNavigation);
+    };
   }, []);
 
-  function navigate(section) {
+  useEffect(() => {
+    document.title = schedulePage ? "Programme schedule | CYI Radio" : "CYI Radio";
+    const anchor = window.location.hash.slice(1);
+    if (!schedulePage && sections.some((section) => section.id === anchor)) {
+      document.getElementById(anchor)?.scrollIntoView({ behavior: "instant" });
+    } else if (focusOnNavigation.current) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    if (focusOnNavigation.current) {
+      document.getElementById("main").focus({ preventScroll: true });
+      focusOnNavigation.current = false;
+    }
+  }, [schedulePage]);
+
+  function hrefFor(section) {
+    if (section === "schedule") return schedulePath;
+    return `${schedulePage ? "/" : ""}#${section}`;
+  }
+
+  function navigate(event, section) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if ((section === "schedule") !== schedulePage) {
+      event.preventDefault();
+      window.history.pushState(null, "", event.currentTarget.href);
+      focusOnNavigation.current = true;
+    } else if (section === "schedule") {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     setActiveSection(section);
     if (section === "chat") setChatOpen(true);
   }
@@ -175,14 +213,14 @@ function App() {
       </a>
       <div className="app-shell">
         <header className="station-header">
-          <StationBrand onNavigate={() => navigate("listen")} />
+          <StationBrand href={hrefFor("listen")} onNavigate={(event) => navigate(event, "listen")} />
           <nav className="station-nav" aria-label="Listener navigation">
             {sections.map(({ id, label, Icon }) => (
               <a
                 key={id}
-                href={`#${id}`}
-                aria-current={activeSection === id ? "location" : undefined}
-                onClick={() => navigate(id)}
+                href={hrefFor(id)}
+                aria-current={activeSection === id ? (schedulePage ? "page" : "location") : undefined}
+                onClick={(event) => navigate(event, id)}
               >
                 <Icon
                   size={21}
@@ -195,44 +233,42 @@ function App() {
           </nav>
         </header>
         <main className="site-frame" id="main" tabIndex={-1}>
+          {online ? null : <p className="offline-notice" role="status">You’re offline. Reconnect to listen live, check the schedule, or chat.</p>}
           <div className="topbar">
             <ShareStation />
           </div>
-          <section
-            id="listen"
-            className="listen-hero"
-            aria-labelledby="listen-heading"
-          >
-            <img
-              className="hero-pattern"
-              src={broadcastPattern}
-              alt=""
-              fetchPriority="high"
-            />
-            <div className="listen-content">
-              <LiveStatus status={radio.status} />
-              <h1 id="listen-heading">
-                Reach Up, Reach Out
-                <br /> <span>Reach In</span>
-              </h1>
-              <p className="hero-description">
-                {description}
-              </p>
-              <PlayButton radio={radio} />
-            </div>
-          </section>
-          <div className="listener-grid">
-            <ListenerChat
-              open={chatOpen}
-              onToggle={() => setChatOpen((previous) => !previous)}
-            />
-            <ListenerSchedule feed={schedule} />
-          </div>
+          {schedulePage ? <SchedulePage today={today} timezone={timezone} offline={!online} /> : (
+            <>
+              <section id="listen" className="listen-hero" aria-labelledby="listen-heading">
+                <img className="hero-pattern" src={broadcastPattern} alt="" fetchPriority="high" />
+                <div className="listen-content">
+                  <LiveStatus status={player.status} />
+                  <h1 id="listen-heading">
+                    Reach Up, Reach Out
+                    <br /> <span>Reach In</span>
+                  </h1>
+                  <p className="hero-description">{description}</p>
+                  <PlayButton radio={player} />
+                </div>
+              </section>
+              <div className="listener-grid">
+                <ListenerChat open={chatOpen} online={online} onToggle={() => setChatOpen((previous) => !previous)} />
+                <ListenerSchedule feed={schedule} current={current} today={today} offline={!online}
+                  onNavigate={(event) => navigate(event, "schedule")} />
+              </div>
+            </>
+          )}
         </main>
       </div>
-      <PlayerDock radio={radio} current={current} logoUrl={stationLogo} />
+      <PlayerDock radio={player} current={current} logoUrl={stationLogo} />
     </>
   );
 }
 
 createRoot(document.getElementById("root")).render(<App />);
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {
+    // The public listener page remains usable if the browser cannot install the worker.
+  });
+}

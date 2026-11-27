@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { findConflict, scheduleAt, scheduleToday, segmentsForSeries } = require('../server/occurrences.cjs')
+const { findConflict, scheduleAt, scheduleToday, scheduleRange, segmentsForSeries } = require('../server/occurrences.cjs')
 
 const timezone = 'Africa/Accra'
 const weekly = {
@@ -47,6 +47,32 @@ test('lists the full station-local day, including shows that cross midnight', ()
   const later = scheduleToday(series, 'Africa/Lagos', new Date('2026-11-26T17:00:00Z'))
   assert.equal(later.current, null)
   assert.deepEqual(later.programmes, afterMidnight.programmes)
+})
+
+test('the next broadcast can be on Saturday while Friday’s schedule stays empty', () => {
+  const saturday = oneTime('saturday', '2026-11-28', '09:00:00')
+  const friday = new Date('2026-11-27T22:00:00Z')
+  assert.equal(scheduleAt([saturday], timezone, friday).upcoming[0].seriesId, 'saturday')
+  assert.deepEqual(scheduleToday([saturday], timezone, friday), { current: null, programmes: [] })
+})
+
+test('a schedule range includes overnight carryovers and uses the effective dates of overrides', () => {
+  const series = [
+    oneTime('ends-at-start', '2026-11-27', '23:00:00'),
+    oneTime('overnight', '2026-11-27', '23:30:00', 90),
+    oneTime('starts-at-end', '2026-12-01', '00:00:00'),
+    { ...weekly, weekdays: 127, exceptions: [
+      { occurrenceDate: '2026-11-27', action: 'override', startsOn: '2026-11-28', startTime: '12:00:00' },
+      { occurrenceDate: '2026-11-28', action: 'cancel' },
+      { occurrenceDate: '2026-11-29', action: 'override', startsOn: '2026-12-01' },
+    ] },
+  ]
+  assert.deepEqual(scheduleRange(series, '2026-11-28', '2026-12-01')
+    .map(entry => [entry.seriesId, entry.occurrenceDate, entry.startsAt]), [
+    ['overnight', '2026-11-27', '2026-11-27T23:30:00'],
+    ['weekly', '2026-11-27', '2026-11-28T12:00:00'],
+    ['weekly', '2026-11-30', '2026-11-30T23:30:00'],
+  ])
 })
 
 test('uses effective dates, presenters, and durations for isolated occurrence changes', () => {

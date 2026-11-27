@@ -1,14 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+
+function subscribeOnline(update) {
+  window.addEventListener('online', update)
+  window.addEventListener('offline', update)
+  return () => {
+    window.removeEventListener('online', update)
+    window.removeEventListener('offline', update)
+  }
+}
+
+const onlineStatus = () => navigator.onLine
+
+export function useOnlineStatus() {
+  return useSyncExternalStore(subscribeOnline, onlineStatus)
+}
 
 export function usePublicFeed(path) {
-  const [feed, setFeed] = useState({ state: 'loading', data: null })
+  const [feed, setFeed] = useState(() => ({ state: navigator.onLine ? 'loading' : 'offline', data: null }))
   const pending = useRef(null)
 
   const refresh = useCallback(async () => {
-    if (document.hidden || pending.current) return
+    if (!navigator.onLine || document.hidden || pending.current) return
     const controller = new AbortController()
     pending.current = controller
-    setFeed(previous => previous.state === 'error' ? { ...previous, state: 'retrying' } : previous)
+    setFeed(previous => ['error', 'offline'].includes(previous.state) ? { ...previous, state: 'retrying' } : previous)
     const timeout = setTimeout(() => controller.abort(), 10_000)
 
     try {
@@ -25,7 +40,17 @@ export function usePublicFeed(path) {
   }, [path])
 
   useEffect(() => {
-    refresh()
+    function syncConnection() {
+      if (navigator.onLine) {
+        refresh()
+      } else {
+        pending.current?.abort()
+        pending.current = null
+        setFeed({ state: 'offline', data: null })
+      }
+    }
+    const unsubscribe = subscribeOnline(syncConnection)
+    syncConnection()
     const interval = setInterval(refresh, 30_000)
     document.addEventListener('visibilitychange', refresh)
     return () => {
@@ -33,6 +58,7 @@ export function usePublicFeed(path) {
       pending.current = null
       clearInterval(interval)
       document.removeEventListener('visibilitychange', refresh)
+      unsubscribe()
     }
   }, [refresh])
 

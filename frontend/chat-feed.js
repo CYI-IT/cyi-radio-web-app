@@ -51,7 +51,7 @@ export function useChatHistory(realtime) {
   }, [])
 
   const refresh = useCallback(function sync() {
-    if (document.hidden) return
+    if (document.hidden || !navigator.onLine) return
     const active = pending.current
     if (active) {
       if (!active.refreshQueued) {
@@ -133,12 +133,14 @@ export function useChatHistory(realtime) {
       if (!connected.current || Date.now() - lastSync.current >= 8_000) refresh()
     }, 4_000)
     document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('online', refresh)
     return () => {
       pending.current?.controller.abort()
       pending.current = null
       clearInterval(timer)
       clearTimeout(resetTimer.current)
       document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('online', refresh)
     }
   }, [refresh])
 
@@ -147,7 +149,7 @@ export function useChatHistory(realtime) {
     let closed = false
     let socket
     function connectWhenVisible() {
-      if (document.hidden) socket?.disconnect()
+      if (document.hidden || !navigator.onLine) socket?.disconnect()
       else socket?.connect()
     }
 
@@ -169,12 +171,16 @@ export function useChatHistory(realtime) {
       connectWhenVisible()
     }).catch(() => {})
     document.addEventListener('visibilitychange', connectWhenVisible)
+    window.addEventListener('online', connectWhenVisible)
+    window.addEventListener('offline', connectWhenVisible)
     return () => {
       closed = true
       socket?.removeAllListeners()
       socket?.disconnect()
       connected.current = false
       document.removeEventListener('visibilitychange', connectWhenVisible)
+      window.removeEventListener('online', connectWhenVisible)
+      window.removeEventListener('offline', connectWhenVisible)
     }
   }, [realtime, refresh])
 

@@ -1,6 +1,6 @@
 const { and, asc, eq, inArray, isNull } = require('drizzle-orm')
 const { presenters, programmes, scheduleSeries, scheduleExceptions } = require('./schema.cjs')
-const { scheduleAt, scheduleToday } = require('./occurrences.cjs')
+const { scheduleAt, scheduleToday, scheduleRange } = require('./occurrences.cjs')
 
 const published = and(eq(scheduleSeries.publicationStatus, 'published'), isNull(scheduleSeries.archivedAt))
 
@@ -23,12 +23,13 @@ async function loadSeries(db, filter, activeCatalog = false) {
   return [...result.values()]
 }
 
-async function publicSchedule(db, timezone, now = new Date(), { today = false } = {}) {
+async function publicSchedule(db, timezone, now = new Date(), { today = false, range } = {}) {
   return db.transaction(async tx => {
     const series = await loadSeries(tx, published, true)
-    const listKey = today ? 'programmes' : 'upcoming'
-    const schedule = (today ? scheduleToday : scheduleAt)(series, timezone, now)
-    const { current, [listKey]: list } = schedule
+    const listKey = today || range ? 'programmes' : 'upcoming'
+    const { current, [listKey]: list } = range
+      ? { current: null, programmes: scheduleRange(series, range.from, range.to) }
+      : (today ? scheduleToday : scheduleAt)(series, timezone, now)
     const entries = current ? [current, ...list] : list
     if (!entries.length) return { timezone, current: null, [listKey]: [] }
 

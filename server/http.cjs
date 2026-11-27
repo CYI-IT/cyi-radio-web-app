@@ -4,6 +4,7 @@ const express = require('express')
 const { stationSettings } = require('./schema.cjs')
 const { createStreamStatus } = require('./stream.cjs')
 const { publicSchedule } = require('./schedule-data.cjs')
+const { date: scheduleDate } = require('./schedule-input.cjs')
 const { chatRouter } = require('./chat-http.cjs')
 const { adminRouter } = require('./admin-http.cjs')
 const { readStationSettings } = require('./admin-management.cjs')
@@ -39,10 +40,22 @@ function createApp({ config, database, frontend, chatRealtime = false, onChatCha
     response.json(await getStreamStatus())
   })
   api.get('/schedule', async (request, response) => {
+    const { day, from, to } = request.query
+    let range
+    if (from !== undefined || to !== undefined) {
+      try {
+        range = { from: scheduleDate(from, 'from'), to: scheduleDate(to, 'to') }
+      } catch (error) {
+        return response.status(400).json({ status: 'request-error', message: error.message })
+      }
+      const days = (Date.parse(range.to) - Date.parse(range.from)) / 86_400_000
+      if (day !== undefined || days < 1 || days > 31) {
+        return response.status(400).json({ status: 'request-error', message: 'Supply a date range of 1 to 31 days without the day parameter.' })
+      }
+    }
     if (database) {
       try {
-        const today = request.query.day === 'today'
-        return response.json(await publicSchedule(database.db, config.stationTimezone, new Date(), { today }))
+        return response.json(await publicSchedule(database.db, config.stationTimezone, new Date(), { today: day === 'today', range }))
       } catch (error) {
         console.error('Schedule read failed', error.cause?.code ?? error.code ?? 'unknown')
       }
@@ -82,7 +95,15 @@ function createApp({ config, database, frontend, chatRealtime = false, onChatCha
       if (error) next(error)
     })
   }
-  app.get(['/', '/index.html'], (_request, response, next) => sendPage('index.html', response, next))
+  app.get(['/', '/index.html', '/schedule'], (_request, response, next) => sendPage('index.html', response, next))
+  app.get('/manifest.webmanifest', (_request, response, next) => {
+    response.set('Cache-Control', 'no-cache').type('application/manifest+json')
+    sendPage('manifest.webmanifest', response, next)
+  })
+  app.get('/sw.js', (_request, response, next) => {
+    response.set('Cache-Control', 'no-cache').type('text/javascript')
+    sendPage('sw.js', response, next)
+  })
   app.get('/admin', (_request, response, next) => {
     response.set({ 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex' })
     sendPage('admin.html', response, next)

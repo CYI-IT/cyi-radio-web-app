@@ -37,7 +37,7 @@ function ChatMessages({ messages }) {
   )
 }
 
-function ChatRoom() {
+function ChatRoom({ online }) {
   const [session, setSession] = useState(null)
   const [realtime, setRealtime] = useState(false)
   const [starting, setStarting] = useState(true)
@@ -49,6 +49,7 @@ function ChatRoom() {
   const feed = useChatHistory(realtime)
 
   useEffect(() => {
+    if (!online) return
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
     let active = true
@@ -61,8 +62,8 @@ function ChatRoom() {
       clearTimeout(timeout)
       if (active) setStarting(false)
     })
-    return () => { active = false; controller.abort() }
-  }, [])
+    return () => { active = false; clearTimeout(timeout); controller.abort() }
+  }, [online])
 
   async function join(event) {
     event.preventDefault()
@@ -137,7 +138,7 @@ function ChatRoom() {
   )
 }
 
-export function ListenerChat({ open, onToggle }) {
+export function ListenerChat({ open, online, onToggle }) {
   return (
     <section id="chat" className="listener-chat" aria-labelledby="chat-heading">
       <header className="section-header">
@@ -151,7 +152,10 @@ export function ListenerChat({ open, onToggle }) {
             {open ? 'Close chat' : 'Open chat'}
           </button>
         </div>
-        <div id="chat-room" hidden={!open}>{open ? <ChatRoom /> : null}</div>
+        <div id="chat-room" hidden={!open}>
+          {online ? null : <p className="schedule-message" role="status">Reconnect to use listener chat.</p>}
+          <div hidden={!online}>{open ? <ChatRoom online={online} /> : null}</div>
+        </div>
       </div>
     </section>
   )
