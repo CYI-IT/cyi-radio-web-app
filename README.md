@@ -28,7 +28,7 @@ Administrators sign in at `/admin`. See the [Phase 6 runbook](docs/phase-6.md) f
 
 ## Install and verify the listener app
 
-Open the public home page over HTTPS or on localhost, then use your browser’s **Install** or **Add to Home Screen** option where available. After a successful online visit, the listener page can reopen offline and explains that live audio, the programme schedule, and chat require a connection. The schedule and stream status refresh when the connection returns. [Chrome installability and offline testing](https://developer.chrome.com/docs/devtools/progressive-web-apps)
+Open the public home page over HTTPS or on localhost. Choose **Install app** when the browser offers it. On Android, **Installation help** is available while the browser is waiting to offer installation. After a successful online visit, the listener page can reopen offline and explains that live audio, the programme schedule, and chat require a connection. The schedule and stream status refresh when the connection returns. [Chrome installability and offline testing](https://developer.chrome.com/docs/devtools/progressive-web-apps)
 
 To verify locally, run `npm run build` and `npm start`. Open the home page in Chrome, then use the **Application** panel to check the manifest and active service worker. Switch offline and reload the listener page. It should show the offline notice without a current programme. Open `/admin` while still offline and confirm it requires a connection. Reconnect and confirm that the listener page fetches the current schedule.
 
@@ -38,4 +38,4 @@ The build creates a versioned cache for the public listener page and its static 
 
 Run `npm ci` and `npm run build:deploy` under Node.js 22 on your development machine. Commit the updated `deploy/frontend/` files with the source. The manual Git task checks the locked production dependencies and copies the prebuilt assets, manifest, and service worker to the private application directory.
 
-See the [Phase 1 runbook](docs/phase-1.md) for cPanel configuration, PostgreSQL migration, backup and restore, and verification.
+Follow the [Phase 7 production runbook](docs/phase-7.md) for the manual cPanel cutover, database verification, and post-restart checks.

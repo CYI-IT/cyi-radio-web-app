@@ -1,7 +1,7 @@
 const cachePrefix = 'cyi-radio-listener-'
-const version = "6b95a7b4faadb1dd"
-const shellPath = "/assets/listener-shell-6b95a7b4faadb1dd.html"
-const assets = ["/assets/CYI-radio-original-2.png","/assets/X.es-pNLYHf-y.js","/assets/broadcast-pattern-qbtAuifX.webp","/assets/cyi-radio-icon-192.png","/assets/cyi-radio-icon-512.png","/assets/index-BgZIRQM2.js","/assets/index-CYR0O2Y-.css","/assets/outfit-latin-wght-normal-Bc-8i84L.woff2","/manifest.webmanifest"]
+const version = "e441f8c0024ce2be"
+const shellPath = "/assets/listener-shell-e441f8c0024ce2be.html"
+const assets = ["/assets/CYI-radio-original-2.png","/assets/X.es-pNLYHf-y.js","/assets/broadcast-pattern-qbtAuifX.webp","/assets/cyi-radio-icon-192.png","/assets/cyi-radio-icon-512.png","/assets/index-B-qYLpHD.css","/assets/index-CvKqpEqL.js","/assets/outfit-latin-wght-normal-Bc-8i84L.woff2","/manifest.webmanifest"]
 
 // The production build prepends the cache version and public listener asset list.
 const cacheName = cachePrefix + version

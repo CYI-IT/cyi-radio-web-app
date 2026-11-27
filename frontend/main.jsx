@@ -6,6 +6,7 @@ import { HeadphonesIcon } from "@phosphor-icons/react/Headphones";
 import { LinkSimpleIcon } from "@phosphor-icons/react/LinkSimple";
 import { ShareNetworkIcon } from "@phosphor-icons/react/ShareNetwork";
 import { XIcon } from "@phosphor-icons/react/X";
+import { InstallApp } from "./install-app.jsx";
 import { ListenerSchedule } from "./listener-schedule.jsx";
 import { ListenerChat } from "./listener-chat.jsx";
 import { SchedulePage } from "./schedule-page.jsx";
@@ -87,7 +88,7 @@ function ShareStation() {
         <ShareNetworkIcon size={18} aria-hidden="true" /> Share station
       </button>
       <dialog
-        className="share-dialog"
+        className="listener-dialog"
         ref={dialog}
         aria-labelledby="share-heading"
       >
@@ -248,7 +249,10 @@ function App() {
                     <br /> <span>Reach In</span>
                   </h1>
                   <p className="hero-description">{description}</p>
-                  <PlayButton radio={player} />
+                  <div className="hero-actions">
+                    <PlayButton radio={player} />
+                    <InstallApp online={online} />
+                  </div>
                 </div>
               </section>
               <div className="listener-grid">
